@@ -11,6 +11,16 @@ requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "MachineFi Labs" }]
 keywords = ["computer-vision", "world-model", "perception", "events", "state", "tracking", "edge-ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = ["numpy>=1.23"]
 
 [project.optional-dependencies]
@@ -33,3 +43,19 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+# pycodestyle (E), Pyflakes (F), isort (I), pyupgrade (UP), flake8-bugbear (B),
+# flake8-comprehensions (C4). Line length is enforced by the formatter, so E501
+# is left to `ruff format` rather than failing the linter.
+select = ["E", "F", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Pre-existing style in frozen modules; the rules stay active for new files.
+"retina/nodes.py" = ["UP037"]
+"retina/pipeline.py" = ["UP037"]
+"retina/detect.py" = ["B905"]
+"retina/track.py" = ["B007"]
+"examples/*" = ["I001"]
+"tests/*" = ["I001"]

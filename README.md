@@ -1,5 +1,8 @@
 # Retina
 
+[![CI](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 **The model-agnostic state layer for world models.** Turn raw real-world signals —
 video, audio, sensor — into **queryable state**: human-readable **events** *and*
 optional machine **latent** vectors, ready for a world model's dynamics.
