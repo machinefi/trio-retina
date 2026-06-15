@@ -1,0 +1,13 @@
+{
+  "source_id": "cam_dock",
+  "nodes": [
+    {"id": "gate", "type": "motion_gate", "thresh": 0.5},
+    {"id": "det", "type": "yolo", "weights": "yolo11n.pt", "classes": ["person", "forklift"]},
+    {"id": "trk", "type": "iou_tracker", "min_hits": 3},
+    {"id": "dock", "type": "zone_rule", "zone": [[0.3, 0.2], [0.7, 0.2], [0.7, 0.9], [0.3, 0.9]], "classes": ["person"], "dwell_s": 30},
+    {"id": "door", "type": "line_rule", "a": [0.5, 0.0], "b": [0.5, 1.0], "classes": ["person"]},
+    {"id": "crowd", "type": "count_rule", "threshold": 3, "classes": ["person"], "zone": [[0.3, 0.2], [0.7, 0.2], [0.7, 0.9], [0.3, 0.9]]},
+    {"id": "out", "type": "jsonl", "path": "events.jsonl"}
+  ],
+  "flow": ["gate", "det", "trk", "dock", "door", "crowd", "out"]
+}

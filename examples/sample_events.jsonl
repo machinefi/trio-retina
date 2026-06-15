@@ -1,0 +1,5 @@
+{"type":"count.threshold","t":1.0,"src":"cam_01","n":1,"frame":1,"threshold":1,"cmp":">="}
+{"type":"zone.enter","t":7.0,"src":"cam_01","id":1,"label":"person","zone":"dock","conf":0.9,"box":[32,40,52,60],"frame":7}
+{"type":"zone.dwell","t":7.0,"src":"cam_01","id":1,"label":"person","zone":"dock","dur":2.0,"conf":0.9,"box":[44,40,64,60],"frame":9}
+{"type":"line.cross","t":9.0,"src":"cam_01","id":1,"label":"person","zone":"door","dir":"a_to_b","conf":0.9,"box":[44,40,64,60],"frame":9}
+{"type":"zone.exit","t":7.0,"src":"cam_01","id":1,"label":"person","zone":"dock","dur":3.0,"conf":0.9,"box":[50,40,70,60],"frame":10}

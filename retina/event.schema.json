@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://machinefi.com/retina/event.schema.json",
+  "title": "retina.event/0.1",
+  "description": "A standard, model-agnostic event: what happened in a stream.",
+  "type": "object",
+  "required": ["type", "t", "src"],
+  "properties": {
+    "type": {"type": "string", "description": "event type, e.g. zone.enter / line.cross / zone.dwell / count.threshold"},
+    "t": {"type": ["number", "string"], "description": "when it happened: epoch seconds or RFC3339; start time for spans"},
+    "src": {"type": "string", "description": "source / sensor id"},
+    "id": {"type": "integer", "description": "track id of the subject"},
+    "label": {"type": "string", "description": "object class"},
+    "zone": {"type": "string", "description": "zone or line id"},
+    "dur": {"type": "number", "description": "duration in seconds (spans)"},
+    "dir": {"type": "string", "description": "direction, e.g. in / out / a_to_b"},
+    "n": {"type": "integer", "description": "a count"},
+    "conf": {"type": "number", "minimum": 0, "maximum": 1},
+    "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+    "by": {"type": "string", "description": "producing model/pipeline"},
+    "frame": {"type": "integer"},
+    "clip": {"type": "string"},
+    "eid": {"type": "string"},
+    "vec": {
+      "type": "object",
+      "description": "optional latent attached to the subject (the dual-state channel)",
+      "required": ["model", "dim"],
+      "properties": {
+        "model": {"type": "string"},
+        "dim": {"type": "integer"},
+        "dtype": {"type": "string"},
+        "ref": {"type": "string"},
+        "values": {"type": "array", "items": {"type": "number"}}
+      }
+    }
+  },
+  "additionalProperties": true
+}
