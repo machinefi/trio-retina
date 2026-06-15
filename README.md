@@ -3,6 +3,13 @@
 [![CI](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
+![Retina demo](media/retina_demo.gif)
+
+*Any detector → a standard **world-state**: boxes, track ids, a zone, live events —
+and a **forecast** arrow per entity (where it's headed, from a dynamics model
+reading Retina's state). Detection is YOLO here; swap it for V-JEPA / DINO / a VLM
+and nothing downstream changes.*
+
 **The model-agnostic state layer for world models.** Turn raw real-world signals —
 video, audio, sensor — into **queryable state**: human-readable **events** *and*
 optional machine **latent** vectors, ready for a world model's dynamics.
