@@ -337,6 +337,14 @@ dynamics model predicting the near-future **state** of a scene from Retina's
 core, and it shows *why* Retina is necessary: a dynamics model eats structured
 state, not pixels. See [`examples/forecast/README.md`](examples/forecast/README.md).
 
+### iTwin.js: a live, predictive layer for a digital twin
+
+[`examples/itwin/`](examples/itwin/) drops the Retina state + event stream onto a
+real Bentley **iTwin.js** iModel (the Baytown sample plant): live entities,
+forecast arrows, and `retina.event` alerts on the twin — through one neutral JSON
+contract, rendered fully headless. Retina doesn't replace the twin; it gives it
+*live eyes*. See [`examples/itwin/README.md`](examples/itwin/README.md).
+
 ## Roadmap
 
 Early but real (`v0.0.3`). Stable: the event layer + JSON Schema/validator, the
