@@ -76,11 +76,32 @@ A latent rides as a `vec` object, **always model-tagged**:
 - the symbolic core stays the **model-agnostic standard**; the latent is **model-coupled**
   and optional.
 
-The fuller **state** (roadmap) is a `WorldState`: a *set* of entities (each = a symbolic
-record + optional `vec`), a scene-level `vec`, and typed relations — the shape
-object-centric / neuro-symbolic world models converged on. Fusion: detector+tracker →
-symbolic core + per-object ReID `vec`; frozen V-JEPA → scene `vec` (+ optional
-ROI-pooled per-entity `vec`).
+### WorldState — the assembled snapshot
+
+Where an event is a *transition*, a `WorldState` is the *state* it lands in: the
+set of entities present at one instant, their typed relations, and a scene-level
+`vec` — the shape object-centric / neuro-symbolic world models converged on. It
+rides beside the event stream (events are deltas; the WorldState is the frame).
+Each entity carries both channels: a symbolic core *and* an optional model-tagged
+`vec`. Same JWT-minimal omit-empty rule — the smallest WorldState is `{src, t}`.
+
+```json
+{
+  "src": "cam_01", "t": 1718000000.0, "frame": 42,
+  "entities": [
+    {"id": "7", "type": "person", "bbox": [10, 20, 60, 180],
+     "vec": {"model": "osnet-reid", "dim": 512, "values": [0.1, 0.2]}},
+    {"id": "9", "type": "forklift", "bbox": [200, 40, 320, 210]}
+  ],
+  "relations": [{"subj": "7", "obj": "9", "predicate": "near"}],
+  "scene": {"model": "v-jepa2-vitl", "dim": 1024, "ref": "vec://abc123"}
+}
+```
+
+Fusion: detector+tracker → symbolic core + per-object ReID `vec`; frozen V-JEPA →
+scene `vec` (+ optional ROI-pooled per-entity `vec`). `WorldState.from_frame`
+assembles the symbolic core from a `Frame`'s tracks; relations and scene are
+filled by higher stages.
 
 ## Primitive event types (0.1)
 

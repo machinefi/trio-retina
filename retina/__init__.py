@@ -51,6 +51,7 @@ from .pipeline import Pipeline, Retina, register_node, to_node
 from .rules import CountRule, EventRule, LineRule, ZoneRule
 from .schema import is_valid, load_schema, validate
 from .track import IoUTracker, NorfairTracker, Track, Tracker
+from .worldstate import Entity, Relation, Vec, WorldState
 from .zones import Line, Zone
 
 __version__ = "0.0.3"
@@ -68,6 +69,11 @@ __all__ = [
     "Frame",
     "Detection",
     "Track",
+    # assembled state
+    "WorldState",
+    "Entity",
+    "Relation",
+    "Vec",
     # detectors / trackers
     "Detector",
     "CallableDetector",
