@@ -51,6 +51,11 @@ Heavy parts (TD-MPC2 + torch MPS, V-JEPA2 features, real video) run on the
 ## Status
 
 - ✅ `dynamics.py` — `DynamicsModel` seam + `LinearForecaster` + `forecast_error`.
-- ✅ `quick_forecast.py` — runnable synthetic proof of the loop.
-- ⬜ `TDMPC2Dynamics` — adapter scaffolded; wire up + run on Mac Studio.
-- ⬜ real-video harness + the one-state-three-consumers + swap-backbone demo.
+- ✅ `quick_forecast.py` — synthetic proof of the loop (no model/GPU).
+- ✅ `forecast_video.py` — real-video baseline (YOLO). On a fixed-cam intersection:
+  no-motion **63.1px → constant-velocity 39.9px** (−37%); the ~40px residual
+  (turns, accel, interactions) is the TD-MPC2 target.
+- ✅ `multi_consumer.py` — one Retina pass → three consumers at once (301 rule
+  events + per-entity forecast + NL judge). Backbone swap is shown by `any_model.py`.
+- ⬜ `TDMPC2Dynamics` — adapter scaffolded; wire up + run on the **Mac Studio**
+  (torch MPS) to beat the 39.9px baseline.
