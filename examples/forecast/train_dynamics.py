@@ -78,7 +78,7 @@ def main(path):
     model = MLP(W).to(dev)
     opt = torch.optim.Adam(model.parameters(), 1e-3)
     lossf = nn.MSELoss()
-    for ep in range(EPOCHS):
+    for _ in range(EPOCHS):
         model.train()
         opt.zero_grad()
         lossf(model(Xtr), Ytr).backward()
