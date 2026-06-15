@@ -57,5 +57,10 @@ Heavy parts (TD-MPC2 + torch MPS, V-JEPA2 features, real video) run on the
   (turns, accel, interactions) is the TD-MPC2 target.
 - ✅ `multi_consumer.py` — one Retina pass → three consumers at once (301 rule
   events + per-entity forecast + NL judge). Backbone swap is shown by `any_model.py`.
-- ⬜ `TDMPC2Dynamics` — adapter scaffolded; wire up + run on the **Mac Studio**
-  (torch MPS) to beat the 39.9px baseline.
+- ✅ `export_trajectories.py` + `train_dynamics.py` — export the WorldState tracks,
+  then train a **learned dynamics** (small MLP, torch + MPS) on the **Mac Studio**
+  (M3 Ultra). On held-out entities it beats the constant-velocity baseline
+  **16.8px → 10.1px (−40%)** — a *learned* dynamics on Retina's structured state
+  genuinely pays off. (Standalone torch script; no Retina dep on the Studio.)
+- ⬜ push further: `TDMPC2Dynamics` (a famous engine) and the **latent channel**
+  (feed V-JEPA per-entity vectors, not just positions) — both on the Mac Studio.
