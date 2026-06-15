@@ -48,16 +48,14 @@ def main(path, out):
     )
     fc = LinearForecaster()
     trails: dict[int, list] = {}
-    n_events, recent = 0, ""
+    n_events = 0
     writer = None
     print(f"rendering {os.path.basename(path)} @ {FPS}fps…", file=sys.stderr)
 
     for img, t in video_frames(path, stride=stride, max_frames=MAX_FRAMES):
         f = pipe.process(img, t)
         fc.observe(WorldState.from_frame(f))
-        for e in f.events:
-            n_events += 1
-            recent = e.type
+        n_events += len(f.events)
         H0, W0 = img.shape[:2]
         s = OUT_W / W0
         vis = cv2.resize(img, (OUT_W, int(H0 * s)))
@@ -72,33 +70,46 @@ def main(path, out):
         cv2.line(vis, (int(LINE[0][0] * Ws), int(LINE[0][1] * Hs)),
                  (int(LINE[1][0] * Ws), int(LINE[1][1] * Hs)), (0, 215, 255), 2)
 
-        pred_by_id = {e.id: e for e in fc.predict(0.6).entities}
+        # entities, drawn DIM so the forecast is the star
         for trk in f.tracks:
             c = color(trk.track_id)
             x1, y1, x2, y2 = (int(v * s) for v in trk.bbox)
-            cv2.rectangle(vis, (x1, y1), (x2, y2), c, 2)
-            tag = f"{trk.label} #{trk.track_id}"
-            (tw, th), _ = cv2.getTextSize(tag, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-            cv2.rectangle(vis, (x1, y1 - th - 6), (x1 + tw + 6, y1), c, -1)
-            cv2.putText(vis, tag, (x1 + 3, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            # trail
-            cx, cy = int((x1 + x2) / 2), int((y1 + y2) / 2)
+            cv2.rectangle(vis, (x1, y1), (x2, y2), c, 1)
+            cv2.putText(vis, f"{trk.label} #{trk.track_id}", (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.42, c, 1, cv2.LINE_AA)
+            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
             tr = trails.setdefault(trk.track_id, [])
             tr.append((cx, cy))
-            del tr[:-14]
+            del tr[:-10]
             for a, b in zip(tr, tr[1:], strict=False):
-                cv2.line(vis, a, b, c, 2, cv2.LINE_AA)
-            # forecast arrow (where it's headed, 0.6s ahead)
+                cv2.line(vis, a, b, c, 1, cv2.LINE_AA)
+
+        # FORECAST (the star): translucent ghost box + thick magenta arrow, 1.0s ahead
+        magenta = (255, 0, 255)
+        pred_by_id = {e.id: e for e in fc.predict(1.0).entities}
+        ghost = vis.copy()
+        arrows = []
+        for trk in f.tracks:
             pe = pred_by_id.get(str(trk.track_id))
-            if pe is not None:
-                px, py = int((pe.bbox[0] + pe.bbox[2]) / 2 * s), int((pe.bbox[1] + pe.bbox[3]) / 2 * s)
-                cv2.arrowedLine(vis, (cx, cy), (px, py), (0, 255, 255), 2, cv2.LINE_AA, tipLength=0.3)
+            if pe is None:
+                continue
+            cx, cy = int((trk.bbox[0] + trk.bbox[2]) / 2 * s), int((trk.bbox[1] + trk.bbox[3]) / 2 * s)
+            px1, py1, px2, py2 = (int(v * s) for v in pe.bbox)
+            pcx, pcy = (px1 + px2) // 2, (py1 + py2) // 2
+            if (pcx - cx) ** 2 + (pcy - cy) ** 2 < 18 ** 2:  # essentially still
+                continue
+            cv2.rectangle(ghost, (px1, py1), (px2, py2), magenta, -1)
+            arrows.append(((cx, cy), (pcx, pcy), (px1, py1, px2, py2)))
+        cv2.addWeighted(ghost, 0.30, vis, 0.70, 0, vis)
+        for a, b, box in arrows:
+            cv2.rectangle(vis, box[:2], box[2:], magenta, 2)
+            cv2.arrowedLine(vis, a, b, magenta, 4, cv2.LINE_AA, tipLength=0.28)
 
         # HUD
         cv2.rectangle(vis, (0, 0), (Ws, 34), (20, 20, 20), -1)
-        cv2.putText(vis, "Retina  |  any model -> world-state  |  boxes + tracks + events + forecast",
+        cv2.putText(vis, "Retina  |  live world-state  +  1.0s FORECAST  (magenta = where it's going)",
                     (12, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(vis, f"events: {n_events}   {recent}", (Ws - 300, 23),
+        cv2.putText(vis, f"events: {n_events}", (Ws - 150, 23),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 1, cv2.LINE_AA)
 
         if writer is None:
