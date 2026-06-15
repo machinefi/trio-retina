@@ -60,6 +60,54 @@ class LinearForecaster:
         return WorldState(src="forecast", t=self._last_t + horizon_s, entities=entities)
 
 
+class LearnedForecaster:
+    """The TRAINED dynamics (the MLP from train_dynamics.py) — anticipates turns /
+    slowdowns from the recent track window, not just constant velocity. Loads the
+    saved weights; needs torch (the render venv has it). Same `DynamicsModel` seam."""
+
+    def __init__(self, weights: str):
+        import torch
+        import torch.nn as nn
+
+        ck = torch.load(weights, map_location="cpu", weights_only=False)
+        self.W, self.wh = ck["W"], ck["wh"]
+        net = nn.Sequential(
+            nn.Linear(self.W * 2, 128), nn.ReLU(), nn.Linear(128, 128), nn.ReLU(), nn.Linear(128, 2)
+        )
+        net.load_state_dict({k[len("net."):]: v for k, v in ck["sd"].items()})
+        net.eval()
+        self._torch, self._net = torch, net
+        self._hist: dict[str, list] = {}
+        self._type: dict[str, str] = {}
+
+    def observe(self, state: WorldState) -> None:
+        for e in state.entities:
+            if e.bbox is None:
+                continue
+            x1, y1, x2, y2 = e.bbox
+            h = self._hist.setdefault(e.id, [])
+            h.append(((x1 + x2) / 2, (y1 + y2) / 2, x2 - x1, y2 - y1))
+            del h[: -self.W]
+            self._type[e.id] = e.type
+
+    def predict(self, horizon_s: float = 0.0) -> WorldState:
+        import numpy as np
+
+        entities = []
+        for eid, h in self._hist.items():
+            if len(h) < self.W:
+                continue
+            p = np.array([[c[0] / self.wh[0], c[1] / self.wh[1]] for c in h[-self.W:]], dtype="float32")
+            with self._torch.no_grad():
+                x = self._torch.tensor((p - p[-1]).reshape(1, -1))  # (1, W*2)
+                d = self._net(x).squeeze(0).numpy()
+            cx, cy, w, hh = h[-1]
+            ncx, ncy = cx + float(d[0]) * self.wh[0], cy + float(d[1]) * self.wh[1]
+            entities.append(Entity(id=eid, type=self._type.get(eid, "?"),
+                                   bbox=(ncx - w / 2, ncy - hh / 2, ncx + w / 2, ncy + hh / 2)))
+        return WorldState(src="forecast", t=0.0, entities=entities)
+
+
 def centroid(e: Entity) -> tuple[float, float] | None:
     if e.bbox is None:
         return None

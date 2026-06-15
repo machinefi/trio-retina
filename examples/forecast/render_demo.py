@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
-from dynamics import LinearForecaster  # noqa: E402
+from dynamics import LearnedForecaster, LinearForecaster  # noqa: E402
 
 from retina import CountRule, IoUTracker, Line, LineRule, WorldState, YoloDetector, Zone, ZoneRule  # noqa: E402
 from retina.nodes import DetectorNode, RuleNode, TrackerNode  # noqa: E402
@@ -21,7 +21,7 @@ from retina.pipeline import Pipeline  # noqa: E402
 from retina.sources import video_frames  # noqa: E402
 
 CLASSES = {"car", "truck", "bus", "motorcycle", "person"}
-FPS, MAX_FRAMES, OUT_W = 10, 120, 1280
+FPS, MAX_FRAMES, OUT_W = 5, 65, 1280  # 5fps matches the dynamics' training cadence
 ROAD = [(0.10, 0.50), (0.95, 0.50), (0.95, 0.70), (0.10, 0.70)]
 LINE = [(0.45, 0.46), (0.45, 0.72)]
 
@@ -46,15 +46,21 @@ def main(path, out):
          RuleNode(CountRule(threshold=5, classes=CLASSES, zone=road))],
         source_id="cam",
     )
-    fc = LinearForecaster()
+    # Same Retina state, two dynamics models plugged into it — A vs B.
+    fc_v = LinearForecaster()
+    ckpt = os.path.join(os.path.dirname(__file__), "dynamics.ckpt")
+    fc_l = LearnedForecaster(ckpt) if os.path.exists(ckpt) else None
     trails: dict[int, list] = {}
     n_events = 0
     writer = None
-    print(f"rendering {os.path.basename(path)} @ {FPS}fps…", file=sys.stderr)
+    print(f"rendering @ {FPS}fps  ·  dynamics: velocity{' + learned' if fc_l else ''}", file=sys.stderr)
 
     for img, t in video_frames(path, stride=stride, max_frames=MAX_FRAMES):
         f = pipe.process(img, t)
-        fc.observe(WorldState.from_frame(f))
+        ws = WorldState.from_frame(f)
+        fc_v.observe(ws)
+        if fc_l:
+            fc_l.observe(ws)
         n_events += len(f.events)
         H0, W0 = img.shape[:2]
         s = OUT_W / W0
@@ -84,33 +90,39 @@ def main(path, out):
             for a, b in zip(tr, tr[1:], strict=False):
                 cv2.line(vis, a, b, c, 1, cv2.LINE_AA)
 
-        # FORECAST (the star): translucent ghost box + thick magenta arrow, 1.0s ahead
-        magenta = (255, 0, 255)
-        pred_by_id = {e.id: e for e in fc.predict(1.0).entities}
-        ghost = vis.copy()
-        arrows = []
+        # FORECAST — the value prop: ONE Retina state, TWO dynamics models per entity.
+        #   gray = constant-velocity (naive)   ·   magenta = learned MLP (-35%)
+        # Where the two arrows diverge, the learned model anticipated a turn/slowdown.
+        gray, magenta = (195, 195, 195), (255, 0, 255)
+        pv = {e.id: e for e in fc_v.predict(1.0).entities}
+        pl = {e.id: e for e in fc_l.predict(1.0).entities} if fc_l else {}
         for trk in f.tracks:
-            pe = pred_by_id.get(str(trk.track_id))
-            if pe is None:
-                continue
             cx, cy = int((trk.bbox[0] + trk.bbox[2]) / 2 * s), int((trk.bbox[1] + trk.bbox[3]) / 2 * s)
-            px1, py1, px2, py2 = (int(v * s) for v in pe.bbox)
-            pcx, pcy = (px1 + px2) // 2, (py1 + py2) // 2
-            if (pcx - cx) ** 2 + (pcy - cy) ** 2 < 18 ** 2:  # essentially still
+            ev = pv.get(str(trk.track_id))
+            if ev is None:
                 continue
-            cv2.rectangle(ghost, (px1, py1), (px2, py2), magenta, -1)
-            arrows.append(((cx, cy), (pcx, pcy), (px1, py1, px2, py2)))
-        cv2.addWeighted(ghost, 0.30, vis, 0.70, 0, vis)
-        for a, b, box in arrows:
-            cv2.rectangle(vis, box[:2], box[2:], magenta, 2)
-            cv2.arrowedLine(vis, a, b, magenta, 4, cv2.LINE_AA, tipLength=0.28)
+            vx, vy = int((ev.bbox[0] + ev.bbox[2]) / 2 * s), int((ev.bbox[1] + ev.bbox[3]) / 2 * s)
+            if (vx - cx) ** 2 + (vy - cy) ** 2 < 16 ** 2:  # essentially still
+                continue
+            cv2.arrowedLine(vis, (cx, cy), (vx, vy), gray, 3, cv2.LINE_AA, tipLength=0.25)
+            el = pl.get(str(trk.track_id))
+            if el is not None:
+                lx, ly = int((el.bbox[0] + el.bbox[2]) / 2 * s), int((el.bbox[1] + el.bbox[3]) / 2 * s)
+                cv2.arrowedLine(vis, (cx, cy), (lx, ly), magenta, 4, cv2.LINE_AA, tipLength=0.28)
 
         # HUD
         cv2.rectangle(vis, (0, 0), (Ws, 34), (20, 20, 20), -1)
-        cv2.putText(vis, "Retina  |  live world-state  +  1.0s FORECAST  (magenta = where it's going)",
+        cv2.putText(vis, "Retina  |  ONE state  ->  swap any dynamics model  (1.0s forecast)",
                     (12, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(vis, f"events: {n_events}", (Ws - 150, 23),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(vis, f"events: {n_events}", (Ws - 140, 23),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv2.LINE_AA)
+        # legend (bottom-left)
+        gy = Hs - 52
+        cv2.rectangle(vis, (10, gy), (270, gy + 44), (20, 20, 20), -1)
+        cv2.arrowedLine(vis, (22, gy + 15), (58, gy + 15), gray, 3, cv2.LINE_AA, tipLength=0.4)
+        cv2.putText(vis, "A: constant-velocity", (66, gy + 19), cv2.FONT_HERSHEY_SIMPLEX, 0.45, gray, 1, cv2.LINE_AA)
+        cv2.arrowedLine(vis, (22, gy + 34), (58, gy + 34), magenta, 4, cv2.LINE_AA, tipLength=0.4)
+        cv2.putText(vis, "B: learned MLP (-35%)", (66, gy + 38), cv2.FONT_HERSHEY_SIMPLEX, 0.45, magenta, 1, cv2.LINE_AA)
 
         if writer is None:
             writer = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"), FPS, (Ws, Hs))

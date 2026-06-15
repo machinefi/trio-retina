@@ -5,10 +5,11 @@
 
 ![Retina demo](media/retina_demo.gif)
 
-*Any detector → a standard **world-state**: boxes, track ids, a zone, live events —
-and a **forecast** arrow per entity (where it's headed, from a dynamics model
-reading Retina's state). Detection is YOLO here; swap it for V-JEPA / DINO / a VLM
-and nothing downstream changes.*
+*One standard **world-state** from any detector (boxes · track ids · zone · live
+events) — then **two dynamics models forecast where each entity is headed** off the
+*same* state: gray = constant-velocity, magenta = a learned model (−35% error).
+Swap the detector (YOLO → V-JEPA → DINO) or the dynamics model — the state in the
+middle is the constant. That's Retina: the neutral layer everything plugs into.*
 
 **The model-agnostic state layer for world models.** Turn raw real-world signals —
 video, audio, sensor — into **queryable state**: human-readable **events** *and*

@@ -17,7 +17,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-W, H, EPOCHS = 5, 3, 400  # window, horizon (frames), training epochs
+W, H, EPOCHS = 5, 5, 600  # window, horizon (frames @ export fps), training epochs
 
 
 def load(path):
@@ -66,7 +66,7 @@ class MLP(nn.Module):
         return self.net(x.flatten(1))
 
 
-def main(path):
+def main(path, save=None):
     dev = "mps" if torch.backends.mps.is_available() else "cpu"
     samples, wh = load(path)
     tr, te = split(samples)
@@ -96,6 +96,11 @@ def main(path):
     else:
         print("\n→ no win here — try more data / a sequence model / the latent channel.")
 
+    if save:
+        torch.save({"sd": model.cpu().state_dict(), "W": W, "H": H, "wh": wh}, save)
+        print(f"saved weights → {save}")
+
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "/tmp/retina_traj.json")
+    main(sys.argv[1] if len(sys.argv) > 1 else "/tmp/retina_traj.json",
+         sys.argv[2] if len(sys.argv) > 2 else None)
