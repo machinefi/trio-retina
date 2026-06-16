@@ -5,21 +5,32 @@ build-backend = "hatchling.build"
 [project]
 name = "retina-sdk"
 version = "0.0.3"
-description = "The model-agnostic state layer for world models: turn any perception model's output into a standard, queryable world-state (symbolic events + latent)."
+description = "Model-agnostic computer-vision pipeline: turn any detector (YOLO, VLM, Grounding DINO) into structured tracking events — zone intrusion, line-crossing, dwell, counting — over video or RTSP. The state layer for world models."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "MachineFi Labs" }]
-keywords = ["computer-vision", "world-model", "perception", "events", "state", "tracking", "edge-ai"]
+keywords = [
+    "computer-vision", "object-tracking", "object-detection", "video-analytics",
+    "yolo", "ultralytics", "vlm", "grounding-dino", "rtsp", "opencv",
+    "perception", "edge-ai", "event-driven", "zone-intrusion", "line-crossing",
+    "people-counting", "world-model", "digital-twin", "vision-pipeline",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Image Recognition",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = ["numpy>=1.23"]
 
@@ -32,8 +43,11 @@ all = ["ultralytics>=8.3", "norfair>=2.2", "opencv-python>=4.8"]
 dev = ["pytest>=8", "ruff>=0.6", "norfair>=2.2"]
 
 [project.urls]
-Homepage = "https://github.com/raullenchai/trio-retina"
-Source = "https://github.com/raullenchai/trio-retina"
+Homepage = "https://github.com/machinefi/trio-retina"
+Source = "https://github.com/machinefi/trio-retina"
+Documentation = "https://github.com/machinefi/trio-retina#readme"
+Issues = "https://github.com/machinefi/trio-retina/issues"
+Changelog = "https://github.com/machinefi/trio-retina/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["retina"]

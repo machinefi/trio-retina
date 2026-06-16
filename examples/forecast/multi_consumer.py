@@ -1,10 +1,10 @@
-"""One Retina state, three consumers — the necessity demo.
+"""One Retina state, three consumers at once.
 
 A single Retina pass over real video produces one standard state stream, and that
 SAME stream drives three different consumers at once:
 
   1. RULES     — geometric events (zone / line / count) off the live tracks
-  2. DYNAMICS  — a forecast of the near-future state (LinearForecaster; TD-MPC2 next)
+  2. DYNAMICS  — a forecast of the near-future state (LinearForecaster; a learned model next)
   3. LLM-JUDGE — a natural-language read of the state (stub here; swap for a VLM)
 
 An opaque V-JEPA-style latent serves one consumer (its own predictor). One Retina

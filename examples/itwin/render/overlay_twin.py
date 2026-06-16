@@ -131,11 +131,14 @@ def main(test_frame: int | None = None):
     gif = os.path.join(HERE, "..", "media", "retina_itwin_demo.gif")
     os.makedirs(os.path.dirname(gif), exist_ok=True)
     pal = "/tmp/twin_pal.png"
-    fps = doc["meta"].get("fps", 5)
-    subprocess.run(f"ffmpeg -y -i {OUTDIR}/f%04d.png -vf palettegen=max_colors=128 {pal} -loglevel error", shell=True, check=True)
-    subprocess.run(f"ffmpeg -y -framerate {fps} -i {OUTDIR}/f%04d.png -i {pal} "
-                   f"-lavfi 'scale=900:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer' {gif} -loglevel error",
-                   shell=True, check=True)
+    fps = int(doc["meta"].get("fps", 5))
+    src = f"{OUTDIR}/f%04d.png"
+    # list args + no shell — the JSON meta is data, never a command string
+    subprocess.run(["ffmpeg", "-y", "-i", src, "-vf", "palettegen=max_colors=128",
+                    pal, "-loglevel", "error"], check=True)
+    subprocess.run(["ffmpeg", "-y", "-framerate", str(fps), "-i", src, "-i", pal,
+                    "-lavfi", "scale=900:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer",
+                    gif, "-loglevel", "error"], check=True)
     sz = os.path.getsize(gif) / 1e6
     print(f"wrote {gif}  ({sz:.1f} MB)")
 

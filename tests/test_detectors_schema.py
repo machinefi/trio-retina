@@ -17,7 +17,7 @@ from retina import event_f1
 from retina.detect import Detection
 
 
-# --- event_f1: the auto-tune objective ---
+# --- event_f1: compare two event streams ---
 
 
 def test_event_f1_perfect_match():

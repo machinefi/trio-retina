@@ -1,13 +1,13 @@
 """Forecast on Retina's WorldState — runs with NO model and NO GPU.
 
-Proves the L4 loop end-to-end: video → Retina → a stream of `WorldState`s → a
-dynamics model predicts the state a few steps ahead → score against the actual
+Proves the forecast loop end-to-end: video → Retina → a stream of `WorldState`s →
+a dynamics model predicts the state a few steps ahead → score against the actual
 future state Retina computed from the future frames. A constant-velocity baseline
 beats a no-motion baseline — i.e. the WorldState is genuinely *dynamics-ready*.
 
 The whole point: the forecaster eats a structured WorldState, never raw pixels —
-so Retina is the necessary interface. Swap `LinearForecaster` for `TDMPC2Dynamics`
-(Mac Studio) behind the same seam; swap the detector for YOLO/V-JEPA — nothing
+so Retina is the interface. Swap `LinearForecaster` for `LearnedForecaster` (or a
+larger engine) behind the same seam; swap the detector for YOLO/V-JEPA — nothing
 else changes.
 
     python examples/forecast/quick_forecast.py
@@ -82,7 +82,7 @@ def main():
     print(f"  constant-velocity (L4):  {mean(lin_err)}")
     better = round(mean(naive_err) - mean(lin_err), 1) if lin_err and naive_err else 0
     print(f"\nWorldState is dynamics-ready: the velocity model cut the error by "
-          f"{better} px vs no-motion.\nSwap in TDMPC2Dynamics (Mac Studio) behind the same seam to go further.")
+          f"{better} px vs no-motion.\nSwap in a learned dynamics model behind the same seam to go further.")
 
 
 if __name__ == "__main__":

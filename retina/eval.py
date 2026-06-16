@@ -1,10 +1,10 @@
-"""Evaluate an event stream against a reference (oracle) stream.
+"""Compare an event stream against a reference stream — precision / recall / F1.
 
 Domain-agnostic because every pipeline speaks the same `retina.event` format:
 match predicted events to reference events that share key fields (type/zone/dir)
-and fall within a time tolerance, then report precision / recall / F1. This is
-the objective an auto-tuner maximizes when fitting a pipeline to a few
-expensive oracle labels.
+within a time tolerance, then report precision / recall / F1. A small, generic
+metric for regression-testing a pipeline or comparing two pipelines on the same
+footage.
 """
 
 from __future__ import annotations

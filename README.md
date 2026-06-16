@@ -3,11 +3,13 @@
 **Turn any perception model's output into one standard, queryable world-state — symbolic events + latent vectors.**
 The model-agnostic state layer for world models.
 
-[![CI](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/raullenchai/trio-retina/actions/workflows/ci.yml)
+*A lightweight, model-agnostic **computer-vision pipeline** for **object detection & tracking** that emits structured **events** — zone intrusion, line-crossing, dwell, people-counting — from **YOLO**, **VLM**, or **Grounding DINO** detectors over video, files, or **RTSP**. Runs on CPU at the **edge**; feeds **digital twins**, dynamics models, and LLMs.*
+
+[![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
-![Retina demo](media/retina_demo.gif)
+![Trio Retina computer-vision pipeline: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif)
 
 > One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity, magenta = learned, −35%). Swap the detector (YOLO → V-JEPA → DINO) or the dynamics model — the state in the middle is the constant.
 
@@ -119,7 +121,7 @@ The hero GIF above. [`examples/forecast/`](examples/forecast/) runs a dynamics m
 
 ### iTwin.js — a live, predictive layer for a digital twin
 
-![Retina live on the Baytown plant twin](examples/itwin/media/retina_itwin_demo.gif)
+![Trio Retina perception events and forecast arrows rendered live on a Bentley iTwin.js digital twin (Baytown plant)](https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/itwin/media/retina_itwin_demo.gif)
 
 [`examples/itwin/`](examples/itwin/) drops Retina's entities, forecast arrows, and `retina.event` alerts onto a real Bentley **iTwin.js** iModel (the Baytown sample plant), through one neutral JSON contract — rendered fully headless. Retina doesn't replace the twin; it gives it *live eyes*.
 

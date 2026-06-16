@@ -4,7 +4,8 @@ This is the L4 layer that sits *on top of* Retina (not in the core). The point o
 the demo: a dynamics model consumes Retina's structured `WorldState` (per-entity),
 NOT raw pixels — so Retina is the necessary, model-agnostic interface between any
 backbone and any dynamics engine. The `DynamicsModel` protocol keeps the dynamics
-swappable too: a pure-Python baseline now, TD-MPC2 / an object-centric model later.
+swappable too: a constant-velocity baseline and a learned MLP today, with room for
+larger engines behind the same protocol.
 """
 
 from __future__ import annotations
@@ -24,8 +25,8 @@ class DynamicsModel(Protocol):
 class LinearForecaster:
     """Per-entity constant-velocity baseline — the simplest dynamics on a
     `WorldState`. Extrapolates each entity's centroid by its recent velocity. It
-    is the bar a real engine (TD-MPC2, object-centric) has to beat; it also proves
-    the harness end-to-end with zero deps."""
+    is the bar a learned engine has to beat; it also proves the harness
+    end-to-end with zero deps."""
 
     def __init__(self, history: int = 5):
         self._history = history
@@ -69,7 +70,7 @@ class LearnedForecaster:
         import torch
         import torch.nn as nn
 
-        ck = torch.load(weights, map_location="cpu", weights_only=False)
+        ck = torch.load(weights, map_location="cpu", weights_only=True)
         self.W, self.wh = ck["W"], ck["wh"]
         net = nn.Sequential(
             nn.Linear(self.W * 2, 128), nn.ReLU(), nn.Linear(128, 128), nn.ReLU(), nn.Linear(128, 2)
@@ -132,25 +133,3 @@ def forecast_error(pred: WorldState, actual: WorldState) -> dict:
         "matched": len(errors),
         "missed": missed,
     }
-
-
-class TDMPC2Dynamics:
-    """Adapter to plug TD-MPC2's world model in behind the same `DynamicsModel`
-    seam. TD-MPC2 ingests a structured state vector (exactly what Retina produces)
-    and has no real-world perception front-end — which is why Retina is the
-    necessary interface. Heavy; run on the Mac Studio (torch MPS).
-
-        pip install tdmpc2   # + torch with MPS
-
-    Implementation note (for the GPU/MPS run): featurize each WorldState into a
-    fixed-width per-entity vector [cx, cy, w, h, (+ optional vec)], pad/pool to the
-    model's obs dim, and roll the latent dynamics forward `horizon` steps, then map
-    the predicted latent back to per-entity positions. Left as the Mac-Studio task;
-    the protocol + featurizer below are the stable seam.
-    """
-
-    def __init__(self, *args, **kwargs):  # pragma: no cover - needs torch + tdmpc2
-        raise NotImplementedError(
-            "TDMPC2Dynamics runs on the Mac Studio (torch MPS + tdmpc2). "
-            "Use LinearForecaster for the offline/local harness."
-        )

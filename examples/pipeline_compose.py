@@ -1,8 +1,8 @@
 """Compose models into a pipeline — the "n8n without a GUI" demo.
 
 Wire nodes (detector -> tracker -> VLM/V-JEPA enricher -> rule) with the `|`
-operator. Add, remove, or reorder a node without touching the others — the same
-idea as cortex's YOLO+gate+VLM chain, but composable. No model, no GPU.
+operator. Add, remove, or reorder a node without touching the others — a
+YOLO+gate+VLM chain, made composable. No model, no GPU.
 
     python examples/pipeline_compose.py
 """

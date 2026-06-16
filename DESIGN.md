@@ -1,4 +1,4 @@
-# Retina — design notes
+# Trio Retina — design notes
 
 **What Retina is:** the **perception encoder** of a world model. In the standard
 decomposition (encoder → dynamics → decoder; Ha & Schmidhuber, Dreamer, V-JEPA 2,
@@ -130,10 +130,11 @@ From **academia**:
 - **ABSORB into the schema roadmap** — MEVA/ActEV activity vocabulary, VidVRD
   predicate structure (proximity/interaction), Vid2Seq "time-tokens →
   constrained JSON decode" so a VLM emits `retina.event` objects directly.
-- **NOT here — the distillation/arbitrage engine** (Autodistill, Soft-Teacher,
-  ShareGPT4V amplification, SAM data engine; FrugalGPT/VideoAgent/Cerberus
-  gating). That is the commercial / Spark layer. Retina core stays the pure
-  event layer; it only exposes the `detector` and `gate` seams those plug into.
+- **NOT here — the layers above the encoder.** The dynamics model (state + action
+  → next state) and the policy / judgment layer (state → action) are separate
+  products built *on* Retina's state — Trio's commercial platform. Retina core
+  stays the pure event/state layer; it only exposes the `detector` and `gate`
+  seams those plug into.
 
 ## Architecture (0.1)
 

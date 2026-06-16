@@ -1,6 +1,6 @@
-# Contributing to Retina
+# Contributing to Trio Retina
 
-Thanks for your interest! Retina is a small, model-agnostic perception/state
+Thanks for your interest! Trio Retina is a small, model-agnostic perception/state
 layer. Contributions that keep it small and beautiful are very welcome.
 
 ## Dev setup

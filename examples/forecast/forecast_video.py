@@ -1,11 +1,11 @@
-"""Forecast on REAL video — baseline number a real engine (TD-MPC2) must beat.
+"""Forecast on REAL video — the baseline number a learned dynamics model must beat.
 
 Retina (YOLO + tracker) turns a real fixed-cam clip into a `WorldState` stream;
 the constant-velocity baseline predicts each entity's position `H` frames ahead;
 we score against the actual future state Retina computed from the future frames.
 On real motion (cars turning / accelerating) the velocity model beats no-motion
-but is far from perfect — that gap is what an interaction-aware dynamics (TD-MPC2,
-on the Mac Studio) is for.
+but is far from perfect — that gap is what a learned, interaction-aware dynamics
+model is for.
 
     pip install 'retina-sdk[yolo,video]'
     python examples/forecast/forecast_video.py /tmp/demo.mp4
@@ -73,7 +73,7 @@ def main(path):
     if lin and naive:
         cut = round(100 * (1 - mean(lin) / mean(naive)))
         print(f"\nvelocity baseline cuts the error {cut}% vs no-motion — a real number on real\n"
-              "motion. The residual (turns, accel, interactions) is the TD-MPC2 target (Mac Studio).")
+              "motion. The residual (turns, accel, interactions) is what a learned model targets.")
 
 
 if __name__ == "__main__":

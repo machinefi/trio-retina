@@ -43,10 +43,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `CallableDetector`), trackers (`IoUTracker`, `NorfairTracker`), rules
   (`ZoneRule`, `LineRule`, `CountRule`), gates (`MotionGate`), and sinks
   (`JsonlSink`, `WebhookSink`).
-- Auto-tuning a cheap pipeline from sparse oracle labels (`event_f1`,
-  `examples/autotune.py`).
+- `event_f1` / `match_events`: a generic metric to compare two event streams.
 
-[Unreleased]: https://github.com/raullenchai/trio-retina/compare/main...HEAD
-[0.0.3]: https://github.com/raullenchai/trio-retina
-[0.0.2]: https://github.com/raullenchai/trio-retina
-[0.0.1]: https://github.com/raullenchai/trio-retina
+[Unreleased]: https://github.com/machinefi/trio-retina/compare/main...HEAD
+[0.0.3]: https://github.com/machinefi/trio-retina
+[0.0.2]: https://github.com/machinefi/trio-retina
+[0.0.1]: https://github.com/machinefi/trio-retina

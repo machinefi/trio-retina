@@ -12,7 +12,7 @@ for security problems.
 
 Use GitHub's private vulnerability reporting:
 
-1. Go to the [Security tab](https://github.com/raullenchai/trio-retina/security)
+1. Go to the [Security tab](https://github.com/machinefi/trio-retina/security)
    of this repository.
 2. Click **Report a vulnerability** and fill in the advisory form.
 

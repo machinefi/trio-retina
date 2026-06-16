@@ -1,7 +1,7 @@
 """Train a learned dynamics on Retina's WorldState trajectories (torch + MPS).
 
-Standalone — needs only torch + numpy (no Retina), so it runs on the Mac Studio's
-existing Python/torch. Loads the JSON exported by export_trajectories.py, learns to
+Standalone — needs only torch + numpy (no Retina), so it runs anywhere with torch.
+Loads the JSON exported by export_trajectories.py, learns to
 predict each entity's near-future displacement from a short window of its track,
 and compares to the constant-velocity baseline on HELD-OUT entities. If the learned
 model beats the baseline, a dynamics model on Retina's structured state is worth it.

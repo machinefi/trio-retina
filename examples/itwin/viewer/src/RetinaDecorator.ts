@@ -114,14 +114,21 @@ class EntityMarker extends Marker {
 }
 
 function makeTooltip(ent: RetinaEntity): HTMLElement {
+  // textContent / DOM nodes, never innerHTML — the event stream is untrusted
+  // (a crafted type/zone string must not be able to inject HTML into the viewer).
   const div = document.createElement("div");
-  const fc = ent.forecast
-    ? `<br/>forecast +${ent.forecast.horizon_s}s → (${ent.forecast.world
-        .map((v) => v.toFixed(1))
-        .join(", ")}) m`
-    : "";
-  const zone = ent.zone ? `<br/>zone: <b>${ent.zone}</b>` : "";
-  div.innerHTML = `<b>${ent.type} #${ent.id}</b>${zone}${fc}`;
+  const head = document.createElement("b");
+  head.textContent = `${ent.type} #${ent.id}`;
+  div.appendChild(head);
+  if (ent.zone) {
+    div.appendChild(document.createElement("br"));
+    div.appendChild(document.createTextNode(`zone: ${ent.zone}`));
+  }
+  if (ent.forecast) {
+    div.appendChild(document.createElement("br"));
+    const coords = ent.forecast.world.map((v) => v.toFixed(1)).join(", ");
+    div.appendChild(document.createTextNode(`forecast +${ent.forecast.horizon_s}s → (${coords}) m`));
+  }
   return div;
 }
 
