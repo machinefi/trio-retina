@@ -13,7 +13,7 @@ from typing import Protocol
 
 from .compose import Pipeable
 from .events import Event, EventType
-from .geometry import side_of_line
+from .geometry import point_in_polygon, segments_intersect, side_of_line
 from .track import Track
 from .zones import Line, Zone
 
@@ -69,11 +69,12 @@ class ZoneRule(_RuleBase):
     def update(self, tracks: list[Track], t: float, frame_idx: int) -> list[Event]:
         events: list[Event] = []
         present = {trk.track_id for trk in tracks}
+        poly = self._zone.scaled(self._frame_size)  # scale once, reuse per track
 
         for trk in tracks:
             if not _match_class(trk.label, self._classes):
                 continue
-            inside = self._zone.contains(trk.centroid, self._frame_size)
+            inside = point_in_polygon(trk.centroid, poly)
             state = self._inside.get(trk.track_id)
 
             if inside and state is None:
@@ -148,11 +149,11 @@ class LineRule(_RuleBase):
 
     def update(self, tracks: list[Track], t: float, frame_idx: int) -> list[Event]:
         events: list[Event] = []
-        a, b = self._line._scaled(self._frame_size)
+        a, b = self._line.scaled(self._frame_size)  # scale once, reuse per track
         for trk in tracks:
             if not _match_class(trk.label, self._classes) or trk.prev_centroid is None:
                 continue
-            if self._line.crossed(trk.prev_centroid, trk.centroid, self._frame_size):
+            if segments_intersect(trk.prev_centroid, trk.centroid, a, b):
                 direction = "a_to_b" if side_of_line(trk.centroid, a, b) < 0 else "b_to_a"
                 events.append(
                     Event(
@@ -201,11 +202,12 @@ class CountRule(_RuleBase):
         self._prev: bool | None = False if emit_initial else None
 
     def _count(self, tracks: list[Track]) -> int:
+        poly = self._zone.scaled(self._frame_size) if self._zone is not None else None
         n = 0
         for trk in tracks:
             if not _match_class(trk.label, self._classes):
                 continue
-            if self._zone is not None and not self._zone.contains(trk.centroid, self._frame_size):
+            if poly is not None and not point_in_polygon(trk.centroid, poly):
                 continue
             n += 1
         return n

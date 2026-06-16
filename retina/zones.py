@@ -21,7 +21,9 @@ class Zone:
     polygon: list[Point]
     normalized: bool = False
 
-    def _scaled(self, size: tuple[int, int] | None) -> list[Point]:
+    def scaled(self, size: tuple[int, int] | None) -> list[Point]:
+        """The polygon in pixel coords. For a normalized zone, multiply by the
+        frame size; compute this once per frame and reuse across objects."""
         if not self.normalized:
             return self.polygon
         if size is None:
@@ -30,7 +32,7 @@ class Zone:
         return [(x * w, y * h) for x, y in self.polygon]
 
     def contains(self, p: Point, frame_size: tuple[int, int] | None = None) -> bool:
-        return point_in_polygon(p, self._scaled(frame_size))
+        return point_in_polygon(p, self.scaled(frame_size))
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,7 +44,8 @@ class Line:
     b: Point
     normalized: bool = False
 
-    def _scaled(self, size: tuple[int, int] | None) -> tuple[Point, Point]:
+    def scaled(self, size: tuple[int, int] | None) -> tuple[Point, Point]:
+        """The (a, b) endpoints in pixel coords; scale once per frame and reuse."""
         if not self.normalized:
             return self.a, self.b
         if size is None:
@@ -53,5 +56,5 @@ class Line:
     def crossed(
         self, p_prev: Point, p_now: Point, frame_size: tuple[int, int] | None = None
     ) -> bool:
-        a, b = self._scaled(frame_size)
+        a, b = self.scaled(frame_size)
         return segments_intersect(p_prev, p_now, a, b)

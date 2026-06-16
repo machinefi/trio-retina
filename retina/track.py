@@ -12,9 +12,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
+import numpy as np
+
 from .compose import Pipeable
 from .detect import Detection
-from .geometry import BBox, Point, centroid, iou
+from .geometry import BBox, Point, centroid
 
 
 @dataclass(slots=True)
@@ -51,6 +53,22 @@ class Tracker(Protocol):
     def update(self, detections: list[Detection], t: float) -> list[Track]: ...
 
 
+def _iou_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """IoU of every box in `a` (T,4) against every box in `b` (D,4) → (T,4) × (D)
+    matrix, computed with numpy broadcasting (the O(T·D) work, in C)."""
+    if a.shape[0] == 0 or b.shape[0] == 0:
+        return np.zeros((a.shape[0], b.shape[0]), dtype=np.float64)
+    ax1, ay1, ax2, ay2 = a[:, 0:1], a[:, 1:2], a[:, 2:3], a[:, 3:4]
+    bx1, by1, bx2, by2 = b[:, 0], b[:, 1], b[:, 2], b[:, 3]
+    iw = np.clip(np.minimum(ax2, bx2) - np.maximum(ax1, bx1), 0.0, None)
+    ih = np.clip(np.minimum(ay2, by2) - np.maximum(ay1, by1), 0.0, None)
+    inter = iw * ih
+    area_a = np.clip(ax2 - ax1, 0.0, None) * np.clip(ay2 - ay1, 0.0, None)
+    area_b = np.clip(bx2 - bx1, 0.0, None) * np.clip(by2 - by1, 0.0, None)
+    union = area_a + area_b - inter
+    return np.where(union > 0.0, inter / np.where(union > 0.0, union, 1.0), 0.0)
+
+
 class IoUTracker(Pipeable):
     """Greedy IoU association — small, deterministic, zero extra deps.
 
@@ -78,20 +96,32 @@ class IoUTracker(Pipeable):
         return TrackerNode(self)
 
     def update(self, detections: list[Detection], t: float) -> list[Track]:
+        # Vectorized greedy IoU association: build the per-label IoU matrix in
+        # numpy (the O(T·D) work), then assign highest-IoU pairs first. Identical
+        # semantics to a scalar greedy match, but the heavy part runs in C.
         unmatched = set(range(len(detections)))
-        # Greedy match: best (track, det) IoU pairs first.
-        pairs: list[tuple[float, int, int]] = []
+        dets_by_label: dict[str, list[int]] = {}
+        for di, det in enumerate(detections):
+            dets_by_label.setdefault(det.label, []).append(di)
+        tracks_by_label: dict[str, list[int]] = {}
         for ti, trk in enumerate(self._tracks):
-            for di, det in enumerate(detections):
-                if det.label != trk.label:
-                    continue
-                score = iou(trk.bbox, det.bbox)
-                if score >= self._iou_threshold:
-                    pairs.append((score, ti, di))
+            tracks_by_label.setdefault(trk.label, []).append(ti)
+
+        pairs: list[tuple[float, int, int]] = []
+        for label, tis in tracks_by_label.items():
+            dis = dets_by_label.get(label)
+            if not dis:
+                continue
+            tb = np.array([self._tracks[ti].bbox for ti in tis], dtype=np.float64)
+            db = np.array([detections[di].bbox for di in dis], dtype=np.float64)
+            m = _iou_matrix(tb, db)
+            rows, cols = np.where(m >= self._iou_threshold)
+            for r, c in zip(rows.tolist(), cols.tolist(), strict=True):
+                pairs.append((float(m[r, c]), tis[r], dis[c]))
         pairs.sort(reverse=True)
 
         matched_tracks: set[int] = set()
-        for score, ti, di in pairs:
+        for _score, ti, di in pairs:
             if ti in matched_tracks or di not in unmatched:
                 continue
             trk, det = self._tracks[ti], detections[di]
@@ -107,11 +137,14 @@ class IoUTracker(Pipeable):
             matched_tracks.add(ti)
             unmatched.discard(di)
 
-        # Age unmatched tracks; drop the stale.
+        # Age unmatched tracks and drop the stale in one pass.
+        survivors: list[Track] = []
         for ti, trk in enumerate(self._tracks):
             if ti not in matched_tracks:
                 trk.missed += 1
-        self._tracks = [t_ for t_ in self._tracks if t_.missed <= self._max_missed]
+            if trk.missed <= self._max_missed:
+                survivors.append(trk)
+        self._tracks = survivors
 
         # Spawn new tracks for leftover detections.
         for di in unmatched:
