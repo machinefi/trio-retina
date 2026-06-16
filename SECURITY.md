@@ -26,4 +26,16 @@ We will acknowledge your report, investigate, and keep you updated on the fix.
 Once a fix is released, we are happy to credit you in the advisory unless you
 prefer to remain anonymous.
 
+## Trust model
+
+Retina treats its pipeline configuration as **trusted operator input**. The
+`WebhookSink` URL, the `JsonlSink` path, and the `video_frames` source (file,
+RTSP, or URL) are taken at face value and used as given — Retina does not
+sandbox or sanitize them. If you load a workflow JSON (`Pipeline.from_json`)
+from an untrusted party, **validate those URLs and paths yourself** before
+running it: apply a scheme allow-list (e.g. `https`, `rtsp`), and block
+link-local / metadata addresses and `file://` URLs you did not intend to expose.
+
+## Thank you
+
 Thank you for helping keep Retina and its users safe.

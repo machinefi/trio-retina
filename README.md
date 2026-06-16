@@ -138,6 +138,16 @@ python examples/yolo_video.py v.mp4  # real footage  (pip install 'retina-sdk[al
 ```
 </details>
 
+## 🎯 use cases
+
+One state layer, many domains — the *same* `retina.event` stream, read differently above:
+
+- **Security & intrusion detection** — `zone.enter` / `line.cross` on cameras and RTSP feeds.
+- **Retail analytics & people-counting** — footfall, queue dwell, zone occupancy from any detector.
+- **Workplace safety** — PPE, forklift, and restricted-zone alerts via open-vocab detectors.
+- **Smart city & traffic monitoring** — vehicle/pedestrian counting and crossings at the edge.
+- **Industrial digital twins** — feed live entities + forecasts into a twin ([iTwin.js demo](examples/itwin/)).
+
 ## 🧠 how it works
 
 Everything flows through one append-only data unit, the **`Frame`**. Each stage *enriches* it and never overwrites upstream fields:

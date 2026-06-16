@@ -41,6 +41,7 @@ grounding = ["transformers>=4.40", "torch>=2.0", "pillow>=10"]
 video = ["opencv-python>=4.8"]
 all = ["ultralytics>=8.3", "norfair>=2.2", "opencv-python>=4.8"]
 dev = ["pytest>=8", "ruff>=0.6", "norfair>=2.2"]
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
 
 [project.urls]
 Homepage = "https://github.com/machinefi/trio-retina"

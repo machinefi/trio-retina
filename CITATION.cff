@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: Trio Retina
+message: If you use this software, please cite it.
+type: software
+authors:
+  - name: MachineFi Labs
+abstract: >-
+  Model-agnostic computer-vision pipeline: turn any detector (YOLO, VLM,
+  Grounding DINO) into structured tracking events — zone intrusion,
+  line-crossing, dwell, counting — over video or RTSP. The state layer for
+  world models.
+repository-code: https://github.com/machinefi/trio-retina
+license: Apache-2.0
+version: 0.0.3
