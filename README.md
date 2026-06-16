@@ -339,11 +339,13 @@ state, not pixels. See [`examples/forecast/README.md`](examples/forecast/README.
 
 ### iTwin.js: a live, predictive layer for a digital twin
 
+![Retina live on the Baytown plant twin](examples/itwin/media/retina_itwin_demo.gif)
+
 [`examples/itwin/`](examples/itwin/) drops the Retina state + event stream onto a
 real Bentley **iTwin.js** iModel (the Baytown sample plant): live entities,
 forecast arrows, and `retina.event` alerts on the twin — through one neutral JSON
-contract, rendered fully headless. Retina doesn't replace the twin; it gives it
-*live eyes*. See [`examples/itwin/README.md`](examples/itwin/README.md).
+contract, rendered fully headless (no GPU). Retina doesn't replace the twin; it
+gives it *live eyes*. See [`examples/itwin/README.md`](examples/itwin/README.md).
 
 ## Roadmap
 
