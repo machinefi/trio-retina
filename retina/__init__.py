@@ -46,6 +46,7 @@ from .nodes import (
     RuleNode,
     SinkNode,
     TrackerNode,
+    WorldStateNode,
 )
 from .pipeline import Pipeline, Retina, register_node, to_node
 from .rules import CountRule, EventRule, LineRule, ZoneRule
@@ -100,6 +101,7 @@ __all__ = [
     "GateNode",
     "EnricherNode",
     "SinkNode",
+    "WorldStateNode",
     "Pipeable",
     # sinks
     "to_jsonl",
@@ -109,7 +111,7 @@ __all__ = [
     "validate",
     "is_valid",
     "load_schema",
-    # evaluation / auto-tuning
+    # evaluation
     "event_f1",
     "match_events",
 ]

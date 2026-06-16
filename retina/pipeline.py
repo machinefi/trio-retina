@@ -18,9 +18,21 @@ Every node enriches the append-only `Frame`; `run()` streams the events out.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .worldstate import WorldState
 
 from .events import Event, Frame
-from .nodes import DetectorNode, GateNode, Node, RuleNode, SinkNode, TrackerNode
+from .nodes import (
+    DetectorNode,
+    GateNode,
+    Node,
+    RuleNode,
+    SinkNode,
+    TrackerNode,
+    WorldStateNode,
+)
 
 
 def to_node(x) -> Node:
@@ -49,9 +61,17 @@ class Pipeline:
     def __or__(self, other) -> "Pipeline":
         return Pipeline([*self.nodes, to_node(other)], source_id=self.source_id)
 
-    def process(self, image, t: float) -> Frame:
-        """Run one (image, timestamp) through the chain; return the enriched Frame."""
-        f = Frame(frame_num=self._i, src=self.source_id, t=t, image=image)
+    def process(self, image, t: float, *, frame_num: int | None = None) -> Frame:
+        """Run one (image, timestamp) through the chain; return the enriched Frame.
+
+        `frame_num` defaults to an internal monotonic counter; pass the true source
+        frame index if you have it (a Pipeline is single-stream/stateful)."""
+        f = Frame(
+            frame_num=self._i if frame_num is None else frame_num,
+            src=self.source_id,
+            t=t,
+            image=image,
+        )
         shape = getattr(image, "shape", None)
         if shape is not None and len(shape) >= 2:
             f.height, f.width = int(shape[0]), int(shape[1])
@@ -67,6 +87,14 @@ class Pipeline:
         """Stream events from an iterable of (image, timestamp) pairs."""
         for image, t in frames:
             yield from self.process(image, t).events
+
+    def run_states(self, frames: Iterable[tuple]) -> Iterator[WorldState]:
+        """Stream a `WorldState` snapshot per frame — the assembled-state channel
+        (entities + relations + scene), alongside `run()`'s event stream."""
+        from .worldstate import WorldState
+
+        for image, t in frames:
+            yield WorldState.from_frame(self.process(image, t))
 
     # --- declarative workflows ("n8n without a GUI") ---
 
@@ -202,6 +230,10 @@ def _webhook(spec) -> Node:
     return SinkNode(WebhookSink(spec["url"]))
 
 
+def _worldstate(spec) -> Node:
+    return WorldStateNode(key=spec.get("key", "worldstate"))
+
+
 _NODE_BUILDERS: dict[str, Callable[[dict], Node]] = {
     "yolo": _yolo,
     "iou_tracker": _iou_tracker,
@@ -211,9 +243,12 @@ _NODE_BUILDERS: dict[str, Callable[[dict], Node]] = {
     "motion_gate": _motion_gate,
     "jsonl": _jsonl,
     "webhook": _webhook,
+    "worldstate": _worldstate,
 }
 
 
 def register_node(type_name: str, builder: Callable[[dict], Node]) -> None:
-    """Register a custom node type for declarative `from_json` workflows."""
+    """Register a custom node type for declarative `from_json` workflows.
+
+    The registry is a module global, so a registration is process-wide."""
     _NODE_BUILDERS[type_name] = builder

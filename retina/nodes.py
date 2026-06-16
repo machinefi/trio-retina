@@ -1,8 +1,8 @@
 """Nodes: the pipeline building blocks.
 
-A Node takes a `Frame`, enriches it (append-only), and returns it — or returns
-None to drop the frame (a gate skipping downstream work). Each kind wraps one
-concern, so you compose them like n8n nodes (without a GUI) or LCEL steps:
+A Node takes a `Frame`, enriches it (each stage populates its own field), and
+returns it — or returns None to drop the frame (a gate skipping downstream work).
+Each kind wraps one concern, so you compose them like n8n nodes (no GUI) or LCEL:
 
     DetectorNode(yolo) | TrackerNode() | GateNode(motion) | ZoneRule(dock) | SinkNode(jsonl)
 
@@ -16,6 +16,7 @@ from __future__ import annotations
 from .compose import Pipeable
 from .events import Frame
 from .track import IoUTracker
+from .worldstate import WorldState
 
 
 class Node(Pipeable):
@@ -108,4 +109,17 @@ class SinkNode(Node):
     def __call__(self, frame: Frame) -> Frame:
         for ev in frame.events:
             self.sink(ev)
+        return frame
+
+
+class WorldStateNode(Node):
+    """Assemble a `WorldState` snapshot from the frame's tracks and store it on
+    `frame.user[key]`, so the *state* channel flows through the same composable
+    pipeline as events. Read it off `frame.user` or via `Pipeline.run_states()`."""
+
+    def __init__(self, *, key: str = "worldstate"):
+        self.key = key
+
+    def __call__(self, frame: Frame) -> Frame:
+        frame.user[self.key] = WorldState.from_frame(frame)
         return frame

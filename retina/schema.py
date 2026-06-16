@@ -56,6 +56,14 @@ def validate(event) -> list[str]:
     if isinstance(conf, (int, float)) and not (0.0 <= conf <= 1.0):
         errs.append("'conf' must be in 0..1")
 
+    # the latent sub-object: model + dim are required (parity with event.schema.json)
+    vec = d.get("vec")
+    if isinstance(vec, dict):
+        if not isinstance(vec.get("model"), str):
+            errs.append("'vec.model' must be a string")
+        if not isinstance(vec.get("dim"), int) or isinstance(vec.get("dim"), bool):
+            errs.append("'vec.dim' must be an integer")
+
     return errs
 
 

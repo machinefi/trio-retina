@@ -5,9 +5,9 @@ required `type/t/src`, everything else optional, empty fields omitted on
 serialize so the minimal event is three keys. Custom data goes in `ext` and is
 flattened into the JSON (namespace your keys).
 
-`Frame` is the append-only enrichment unit (DeepStream's metadata-tree idea):
-each stage attaches to it (detections → tracks → events) and never overwrites
-upstream fields. The open `user` dicts are extension slots for downstream code.
+`Frame` is the enrichment unit (DeepStream's metadata-tree idea): each stage
+populates its own field (detections, then tracks, then events) as the frame flows
+through the chain. The open `user` dicts are extension slots for downstream code.
 
 Keep this module stdlib-only — it's the schema everyone agrees on.
 """
@@ -16,7 +16,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .worldstate import Vec
 
 SPEC = "retina.event/0.1"
 
@@ -61,7 +64,8 @@ class Event:
     frame: int | None = None
     clip: str | None = None
     eid: str | None = None
-    vec: dict[str, Any] | None = None  # optional latent: {model, dim, dtype, ref|values}
+    # the dual-state latent: a Vec or a plain {model, dim, dtype, ref|values} dict
+    vec: Vec | dict[str, Any] | None = None
     ext: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -69,8 +73,14 @@ class Event:
         d: dict[str, Any] = {"type": self.type, "t": self.t, "src": self.src}
         for k in _OPTIONAL:
             v = getattr(self, k)
-            if v is not None:
-                d[k] = list(v) if k == "box" else v
+            if v is None:
+                continue
+            if k == "box":
+                d[k] = list(v)
+            elif k == "vec":
+                d[k] = v.to_dict() if hasattr(v, "to_dict") else v  # Vec or dict
+            else:
+                d[k] = v
         # custom fields never shadow reserved schema keys
         for k, v in self.ext.items():
             if k not in _RESERVED:
