@@ -55,7 +55,7 @@ from .track import IoUTracker, NorfairTracker, Track, Tracker
 from .worldstate import Entity, Relation, Vec, WorldState
 from .zones import Line, Zone
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 __all__ = [
     # runner

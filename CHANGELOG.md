@@ -1,17 +1,48 @@
 # Changelog
 
-All notable changes to Retina are documented here. The format is based on
+All notable changes to Trio Retina are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.0.4]
+
 ### Added
 
-- Top-OSS documentation pass: tagline, table of contents, Features list, and
-  reorganized README sections.
-- `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`, and GitHub issue / pull
-  request templates.
+- Rebranded to **Trio Retina**; repository moved to the `machinefi` org.
+- Top-OSS documentation pass (tagline, Features, reorganized README) plus
+  `CODE_OF_CONDUCT.md`, `SECURITY.md`, issue / pull-request templates.
+- `WorldStateNode` + `Pipeline.run_states()`: the assembled-state channel now
+  flows through the composable pipeline (and a `worldstate` workflow node).
+- `Pipeline.process(frame_num=...)` to set the frame index explicitly.
+- Retina × iTwin.js digital-twin example (`examples/itwin/`) — the event/state
+  stream rendered live on a Bentley iModel.
+- MkDocs Material documentation site + GitHub Pages deploy workflow; `CITATION.cff`;
+  Dependabot for pip + GitHub Actions.
+- Tests: 28 → 70, covering the geometry primitives, `MotionGate`, tracker
+  re-association, `CountRule` comparators, vec validation, and the new APIs.
+
+### Changed
+
+- `IoUTracker` association is vectorized with numpy (≈5–20× on the matching step
+  in crowded scenes); zone/line geometry is scaled once per frame, not per object.
+- `Event.vec` accepts a `Vec` or a dict and normalizes on serialize, unifying the
+  latent representation across the event and world-state channels.
+- PyPI metadata: search-led description, expanded keywords / classifiers, full
+  project URLs.
+
+### Fixed / Security
+
+- `validate()` now checks the `vec` sub-object (parity with `event.schema.json`).
+- `LearnedForecaster` loads checkpoints with `weights_only=True` (was an unsafe
+  pickle load); the iTwin overlay drops `subprocess(shell=True)`; the iTwin
+  decorator builds tooltips with `textContent`, not `innerHTML` (XSS).
+
+### Removed
+
+- The AutoResearch / auto-tune examples and the unimplemented `TDMPC2Dynamics`
+  stub, plus stale terminology across docs and example docstrings.
 
 ## [0.0.3]
 
@@ -46,6 +77,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `event_f1` / `match_events`: a generic metric to compare two event streams.
 
 [Unreleased]: https://github.com/machinefi/trio-retina/compare/main...HEAD
+[0.0.4]: https://github.com/machinefi/trio-retina
 [0.0.3]: https://github.com/machinefi/trio-retina
 [0.0.2]: https://github.com/machinefi/trio-retina
 [0.0.1]: https://github.com/machinefi/trio-retina

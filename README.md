@@ -189,7 +189,7 @@ Full rationale, references, and the world-model stack: [`DESIGN.md`](DESIGN.md).
 
 ## 🗺️ roadmap
 
-Early but real (`v0.0.3`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors, IoU + Norfair trackers.
+Early but real (`v0.0.4`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors, IoU + Norfair trackers.
 
 Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · the **latent channel** (surface V-JEPA scene + per-object embeddings). See [`CHANGELOG.md`](CHANGELOG.md).
 
