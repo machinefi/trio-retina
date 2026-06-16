@@ -1,4 +1,4 @@
-# Retina
+# Trio Retina
 
 **Turn any perception model's output into one standard, queryable world-state — symbolic events + latent vectors.**
 The model-agnostic state layer for world models.
@@ -13,7 +13,7 @@ The model-agnostic state layer for world models.
 
 ## 👋 hello
 
-Retina turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* optional **latent** vectors, on one small model-agnostic standard. Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume.
+**Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* optional **latent** vectors, on one small model-agnostic standard. Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume.
 
 Think **OpenTelemetry for perception** — it doesn't build the sensors, it normalizes any of them into one state. In world-model terms it's the **encoder** (`s = Enc(x)`), and *only* the encoder; dynamics and policy build on top. → see [`DESIGN.md`](DESIGN.md).
 
