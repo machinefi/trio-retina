@@ -3,15 +3,16 @@
 Retina's state is **dual**: every entity carries a readable *symbolic* core AND an
 optional model-tagged *latent* `vec` on the *same* record (see DESIGN.md / SPEC.md
 "The latent channel"). The `Vec` type and the `entity.vec` slot are a real,
-serializable interface today — what's on the roadmap is the *producers* that fill
-it automatically (V-JEPA scene latents, per-object ReID). This example shows the
-interface is usable right now by attaching your **own** embedding:
+serializable interface, and built-in *producers* now ship to fill it automatically
+(`DinoV2Embedder` per-object, `VJepa2Embedder` scene-level). This example shows
+the interface is usable on its own by attaching your **own** embedding:
 
     track.user["vec"] = Vec(...).to_dict()   # any embedding you already have
         → flows into WorldState  →  entity.vec  →  serialize  →  round-trips
 
 So if you have an embedder (a frozen backbone, a ReID head, anything), you can ride
-the latent channel today; you don't have to wait for the shipped producers.
+the latent channel directly — or reach for a built-in producer
+(`examples/world_model/multi_encoder.py`) when you'd rather not wire one yourself.
 
     python examples/latent_vec.py
 """

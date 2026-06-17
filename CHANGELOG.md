@@ -31,6 +31,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   constant-velocity. Torch lives only in the examples (numpy-only core); install
   via the new `[dynamics]` extra. Numpy-only smoke test in
   `tests/test_world_model.py`.
+- `examples/world_model/end_to_end.py`: the full world-model stack in one
+  runnable script — perception encoder → Retina `WorldState` (symbolic + DINOv2
+  latent) → learned dynamics → imagination rollout, printing a frame's
+  `WorldState` and the imagined-vs-truth trajectory. Reuses the Phase-2 dataset
+  and model code.
+- `examples/world_model/benchmark.py` + `BENCHMARK.md`: a small front/back-end
+  benchmark grid over {const-velocity, pos-only, pos+appearance} × prediction
+  horizon, writing a held-out position-error table. Captured REAL on Mac Studio
+  (MPS, real DINOv2): at horizon 7, pos+appearance 1.33 px beats const-velocity
+  7.68 px (+83%) and pos-only 1.45 px (+8%); the appearance edge widens with the
+  horizon. Framed as early/illustrative (synthetic scene, small PoC).
 
 ## [0.2.1] — 2026-06-17
 

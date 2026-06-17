@@ -19,7 +19,7 @@ The model-agnostic state layer for world models.
 
 ## 👋 hello
 
-**Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* a standardized **latent** `vec` channel on the same records, on one small model-agnostic standard. The latent channel is a real, serializable interface today (attach your own embedding — see [`examples/latent_vec.py`](examples/latent_vec.py)); the automatic *producers* (V-JEPA scene + per-object ReID) are on the [roadmap](#-roadmap). Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume.
+**Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* a standardized **latent** `vec` channel on the same records, on one small model-agnostic standard. The latent channel is a real, serializable interface (attach your own embedding — see [`examples/latent_vec.py`](examples/latent_vec.py)), and the automatic *producers* now ship: `DinoV2Embedder` fills per-object `entity.vec` and `VJepa2Embedder` fills the scene latent `ws.scene`. Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume — and a small example dynamics model [imagines the future off that state](#-the-world-model-stack).
 
 Think **OpenTelemetry for perception** — it doesn't build the sensors, it normalizes any of them into one state. In world-model terms it's the **encoder** (`s = Enc(x)`), and *only* the encoder; dynamics and policy build on top. → see [`DESIGN.md`](DESIGN.md).
 
@@ -180,6 +180,52 @@ from retina import validate
 validate(event)   # -> [] if valid, else a list of problems  (pure-Python, ships a JSON Schema)
 ```
 
+## 🌍 the world-model stack
+
+Retina is the **encoder** (`s = Enc(x)`) in a world model. With the latent
+producers shipped, the whole front-to-back seam is now demonstrable end to end —
+on a synthetic scene, as a small but honest proof of concept ([`examples/world_model/`](examples/world_model/)):
+
+**1 · swap the encoder, the state is constant.** The same pipeline, run three
+ways — symbolic-only, `+ DinoV2Embedder` (per-object `entity.vec`), and
+`+ VJepa2Embedder` (scene-level `ws.scene`) — yields the *identical* WorldState
+schema; only which model filled the latent changes. → [`multi_encoder.py`](examples/world_model/multi_encoder.py)
+
+**2 · a dynamics model imagines the future off that state.** A small transformer
+trained offline on recorded `WorldState` sequences predicts where each entity is
+headed, and rolls out *imagination* trajectories inside the learned model. The
+honest ablation — does Retina's appearance latent actually help? — on **held-out**
+data with **real DINOv2** vecs (Mac Studio, MPS), mean held-out 7-step position
+error (px, lower is better):
+
+| dynamics input | 7-step error |
+|---|---|
+| constant-velocity baseline | 7.68 px |
+| learned, pos-only | 1.45 px |
+| **learned, pos + appearance latent** | **1.33 px** |
+
+**The latent channel measurably improves prediction: +83% over constant-velocity,
++8% over pos-only at horizon 7** — and the edge *widens with the horizon*, because
+that's where local velocity runs out and object *type* (legible only from
+appearance) decides the future. → [`dynamics.py`](examples/world_model/dynamics.py), full grid in [`BENCHMARK.md`](BENCHMARK.md)
+
+![Imagination rollout vs ground truth — a learned dynamics model imagines future entity trajectories off Retina's WorldState](https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/world_model/media/rollout.png)
+
+**3 · front + back compose through one standard.** Any encoder in front, any
+dynamics behind, meeting on one serializable state — a pip-installable world-model
+seam you can run in one script. → [`end_to_end.py`](examples/world_model/end_to_end.py)
+
+```bash
+pip install 'trio-retina[dynamics,dino]'
+python examples/world_model/dataset.py --n 12 --len 24 --out examples/world_model/data/sequences.json
+python examples/world_model/end_to_end.py   # encoder → WorldState → dynamics → imagined rollout
+```
+
+> Honest scope: a synthetic scene, a tiny model, reproducible on MPS with
+> run-to-run variance. The *producers* ship; the *trained dynamics* is a small
+> example, not a product. The point is the seam — that front and back compose
+> through one standardized state.
+
 ## 🎬 demos
 
 ### Forecast — the dynamics layer on top of Retina
@@ -215,6 +261,15 @@ Real-footage / dynamics demos need a clip and the extras — `pip install 'trio-
 python examples/yolo_video.py v.mp4    # YOLO on a video file
 examples/forecast/                     # dynamics layer on the WorldState stream (needs [video] + a clip)
 examples/itwin/                        # events + forecasts on a Bentley iTwin.js iModel
+```
+
+The **world-model stack** lives in [`examples/world_model/`](examples/world_model/) (needs `[dynamics]`, plus `[dino]`/`[vjepa]` for real encoders):
+
+```bash
+python examples/world_model/multi_encoder.py   # swap encoder, state schema stays constant
+python examples/world_model/dynamics.py        # train + the honest appearance ablation
+python examples/world_model/benchmark.py       # the front/back-end benchmark grid → BENCHMARK.md
+python examples/world_model/end_to_end.py      # encoder → WorldState → dynamics → imagined rollout
 ```
 </details>
 
@@ -252,7 +307,7 @@ Everything flows through one append-only data unit, the **`Frame`**. Each stage 
 
 **Two senses of "encoder."** Foundation backbones (V-JEPA, DINO, SAM, YOLO) turn pixels into features — that race is theirs, and Retina rides it. Retina is the encoder *layer* on top: it **fuses** many models into one record, gives objects **persistent identity**, **structures** it into entities + relations + events, carries the **dual** symbolic + latent channels, as an **event-sourced stream** — one small, serializable, model-agnostic standard.
 
-**Dual state.** The same entities on two linked channels: *symbolic* (readable `events` / entity records, for rules / LLMs / dashboards) and *latent* (optional model-tagged embeddings, for a downstream dynamics model). Symbols you can read; vectors a model can predict on. The latent channel is a standardized, serializable interface shipping today — you can populate `entity.vec` with your own embedding now ([`examples/latent_vec.py`](examples/latent_vec.py)); the built-in *producers* (V-JEPA / ReID) are on the roadmap, not shipped yet.
+**Dual state.** The same entities on two linked channels: *symbolic* (readable `events` / entity records, for rules / LLMs / dashboards) and *latent* (optional model-tagged embeddings, for a downstream dynamics model). Symbols you can read; vectors a model can predict on. The latent channel is a standardized, serializable interface — populate `entity.vec` with your own embedding ([`examples/latent_vec.py`](examples/latent_vec.py)), or let a built-in producer fill it: `DinoV2Embedder` (per-object) and `VJepa2Embedder` (scene-level) both ship today.
 
 **vs DeepStream / Holoscan** — same good ideas (event semantics, metadata model, composable graph), none of the weight:
 
@@ -273,7 +328,7 @@ Full rationale, references, and the world-model stack: [`DESIGN.md`](DESIGN.md).
 
 Early but real (`v0.2.1`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors (plus `from_supervision` interop), IoU + Norfair trackers, and jitter-robust rules (`exit_grace_s` · `anchor` · `min_frames`).
 
-Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · the **latent channel** (surface V-JEPA scene + per-object embeddings). See [`CHANGELOG.md`](CHANGELOG.md).
+Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · **more encoders** behind the latent channel · **RL / imagination-training** on the learned state (Dreamer-style) · growing the [front/back-end benchmark](BENCHMARK.md). See [`CHANGELOG.md`](CHANGELOG.md).
 
 Retina is the open **perception encoder** extracted from [Trio](https://machinefi.com); the layers above (dynamics, policy / judgment) are Trio's commercial platform. Retina is, and stays, model-agnostic and free.
 
