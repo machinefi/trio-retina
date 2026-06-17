@@ -17,6 +17,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   on the new side for `min_frames` frames (default 1 = unchanged instant-emit),
   suppressing single-frame jitter near the tripwire — mirrors Supervision's
   `LineZone.minimum_crossing_threshold`.
+- Examples: `examples/rtsp_to_webhook.py` (camera → restricted-zone alert →
+  webhook) and `examples/from_supervision.py` (ingest a Roboflow `sv.Detections`
+  pipeline), both runnable with no model / GPU / network on synthetic input.
 
 ## [0.1.0] — 2026-06-17
 

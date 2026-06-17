@@ -5,6 +5,8 @@ The model-agnostic state layer for world models.
 
 *A lightweight, model-agnostic **computer-vision pipeline** for **object detection & tracking** that emits structured **events** — zone intrusion, line-crossing, dwell, people-counting — from **YOLO**, **VLM**, or **Grounding DINO** detectors over video, files, or **RTSP**. Runs on CPU at the **edge**; feeds **digital twins**, dynamics models, and LLMs.*
 
+> Just want camera events (zone intrusion, line-crossing) pushed to a webhook? → jump to the [5-line quickstart](#-quickstart), or copy [`examples/rtsp_to_webhook.py`](examples/rtsp_to_webhook.py).
+
 [![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-live-brightgreen.svg)](https://machinefi.github.io/trio-retina/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -50,7 +52,7 @@ for event in cam.run(video_frames("dock.mp4")):
     #  "label":"person","zone":"dock","dur":31.0,"conf":0.91}
 ```
 
-No model, no GPU? Every demo under [`examples/`](examples/) runs on synthetic detections — start with `python examples/quickstart.py`.
+No model, no GPU? The [`examples/`](examples/) quickstarts run on synthetic detections — start with `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
 
 ### compose models with `|`
 
@@ -130,17 +132,30 @@ The hero GIF above. [`examples/forecast/`](examples/forecast/) runs a dynamics m
 [`examples/itwin/`](examples/itwin/) drops Retina's entities, forecast arrows, and `retina.event` alerts onto a real Bentley **iTwin.js** iModel (the Baytown sample plant), through one neutral JSON contract — rendered fully headless. Retina doesn't replace the twin; it gives it *live eyes*.
 
 <details>
-<summary>All examples (each runs with no model / no GPU)</summary>
+<summary>All examples</summary>
+
+The top-level quickstarts run with **no model and no GPU** (synthetic detections):
 
 ```bash
-python examples/quickstart.py        # zone / line / count / dwell events
-python examples/three_apps.py        # one stream -> security, retail, safety
-python examples/any_model.py         # swap the detector, rest unchanged
-python examples/gate_savings.py      # a cheap gate cuts detector calls 100 -> 23
-python examples/pipeline_compose.py  # compose with | (n8n without a GUI)
-python examples/yolo_video.py v.mp4  # real footage  (pip install 'retina-sdk[all]')
+python examples/quickstart.py          # zone / line / count / dwell events
+python examples/three_apps.py          # one stream -> security, retail, safety
+python examples/any_model.py           # swap the detector, rest unchanged
+python examples/gate_savings.py        # a cheap gate cuts detector calls 100 -> 23
+python examples/pipeline_compose.py    # compose with | (n8n without a GUI)
+python examples/rtsp_to_webhook.py     # camera -> restricted-zone alert -> webhook
+python examples/from_supervision.py    # ingest a Roboflow sv.Detections pipeline
+```
+
+Real-footage / dynamics demos need a clip and the extras — `pip install 'retina-sdk[all]'`:
+
+```bash
+python examples/yolo_video.py v.mp4    # YOLO on a video file
+examples/forecast/                     # dynamics layer on the WorldState stream (needs [video] + a clip)
+examples/itwin/                        # events + forecasts on a Bentley iTwin.js iModel
 ```
 </details>
+
+**Send events anywhere.** `WebhookSink(url)` POSTs each event as JSON (stdlib urllib, no `requests`); `JsonlSink(path)` streams to a file. For a live camera, `video_frames(src, live=True)` reads RTSP / HLS / webcam with wall-clock timestamps — see [`examples/rtsp_to_webhook.py`](examples/rtsp_to_webhook.py).
 
 ## 🎯 use cases
 
