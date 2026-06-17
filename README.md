@@ -1,6 +1,6 @@
 # Trio Retina
 
-**Turn any perception model's output into one standard, queryable world-state — symbolic events + latent vectors.**
+**Turn any perception model's output into one standard, queryable world-state — symbolic events, with a latent-vector channel built in.**
 The model-agnostic state layer for world models.
 
 *A lightweight, model-agnostic **computer-vision pipeline** for **object detection & tracking** that emits structured **events** — zone intrusion, line-crossing, dwell, people-counting — from **YOLO**, **VLM**, or **Grounding DINO** detectors over video, files, or **RTSP**. Runs on CPU at the **edge**; feeds **digital twins**, dynamics models, and LLMs.*
@@ -14,11 +14,11 @@ The model-agnostic state layer for world models.
 
 ![Trio Retina computer-vision pipeline: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif)
 
-> One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity, magenta = learned, −35%). Swap the detector (YOLO → V-JEPA → DINO) or the dynamics model — the state in the middle is the constant.
+> One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity baseline, magenta = a learned model). Swap the detector (YOLO → V-JEPA → DINO) or the dynamics model — the state in the middle is the constant.
 
 ## 👋 hello
 
-**Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* optional **latent** vectors, on one small model-agnostic standard. Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume.
+**Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* a standardized **latent** `vec` channel on the same records, on one small model-agnostic standard. The latent channel is a real, serializable interface today (attach your own embedding — see [`examples/latent_vec.py`](examples/latent_vec.py)); the automatic *producers* (V-JEPA scene + per-object ReID) are on the [roadmap](#-roadmap). Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume.
 
 Think **OpenTelemetry for perception** — it doesn't build the sensors, it normalizes any of them into one state. In world-model terms it's the **encoder** (`s = Enc(x)`), and *only* the encoder; dynamics and policy build on top. → see [`DESIGN.md`](DESIGN.md).
 
@@ -52,7 +52,7 @@ for event in cam.run(video_frames("dock.mp4")):
     #  "label":"person","zone":"dock","dur":31.0,"conf":0.91}
 ```
 
-No model, no GPU? The [`examples/`](examples/) quickstarts run on synthetic detections — start with `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
+No model, no GPU? The [`examples/`](examples/) quickstarts run on synthetic detections — `git clone` the repo (they ship with the source, not the wheel) and start with `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
 
 ### compose models with `|`
 
@@ -134,7 +134,7 @@ The hero GIF above. [`examples/forecast/`](examples/forecast/) runs a dynamics m
 <details>
 <summary>All examples</summary>
 
-The top-level quickstarts run with **no model and no GPU** (synthetic detections):
+The examples live in this repo (not in the installed wheel) — `git clone` to run them. The top-level quickstarts run with **no model and no GPU** (synthetic detections):
 
 ```bash
 python examples/quickstart.py          # zone / line / count / dwell events
@@ -144,6 +144,7 @@ python examples/gate_savings.py        # a cheap gate cuts detector calls 100 ->
 python examples/pipeline_compose.py    # compose with | (n8n without a GUI)
 python examples/rtsp_to_webhook.py     # camera -> restricted-zone alert -> webhook
 python examples/from_supervision.py    # ingest a Roboflow sv.Detections pipeline
+python examples/latent_vec.py          # populate the latent vec channel by hand
 ```
 
 Real-footage / dynamics demos need a clip and the extras — `pip install 'trio-retina[all]'`:
@@ -189,7 +190,7 @@ Everything flows through one append-only data unit, the **`Frame`**. Each stage 
 
 **Two senses of "encoder."** Foundation backbones (V-JEPA, DINO, SAM, YOLO) turn pixels into features — that race is theirs, and Retina rides it. Retina is the encoder *layer* on top: it **fuses** many models into one record, gives objects **persistent identity**, **structures** it into entities + relations + events, carries the **dual** symbolic + latent channels, as an **event-sourced stream** — one small, serializable, model-agnostic standard.
 
-**Dual state.** The same entities on two linked channels: *symbolic* (readable `events` / entity records, for rules / LLMs / dashboards) and *latent* (optional model-tagged embeddings, for a downstream dynamics model). Symbols you can read; vectors a model can predict on.
+**Dual state.** The same entities on two linked channels: *symbolic* (readable `events` / entity records, for rules / LLMs / dashboards) and *latent* (optional model-tagged embeddings, for a downstream dynamics model). Symbols you can read; vectors a model can predict on. The latent channel is a standardized, serializable interface shipping today — you can populate `entity.vec` with your own embedding now ([`examples/latent_vec.py`](examples/latent_vec.py)); the built-in *producers* (V-JEPA / ReID) are on the roadmap, not shipped yet.
 
 **vs DeepStream / Holoscan** — same good ideas (event semantics, metadata model, composable graph), none of the weight:
 

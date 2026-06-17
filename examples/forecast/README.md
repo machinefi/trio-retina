@@ -9,26 +9,42 @@ pixels, so Retina is the interface between any backbone and any forecaster.
 behind one tiny `DynamicsModel` protocol (`observe` / `predict`):
 
 - `LinearForecaster` — constant-velocity baseline (gray arrow).
-- `LearnedForecaster` — a small trained MLP (magenta arrow), **−35 %** centroid
-  error vs the baseline on held-out entities.
+- `LearnedForecaster` — a small trained MLP (magenta arrow), which *can* anticipate
+  turns / slow-downs a constant-velocity model misses.
 
 Swap the detector (YOLO → V-JEPA → DINO) or the forecaster — the state in the
 middle is the constant.
 
-## Run it
+## Run it — the reproducible demo (no model, no GPU, no footage)
 
 ```bash
-python examples/forecast/quick_forecast.py     # synthetic — proves the loop, no model/GPU
-python examples/forecast/forecast_video.py v.mp4   # real-video constant-velocity baseline
+python examples/forecast/quick_forecast.py
+```
+
+This is the runnable evidence: it builds a synthetic `WorldState` stream, forecasts
+a few frames ahead, and prints the real baseline-vs-baseline comparison — a
+constant-velocity model vs a no-motion model — so you can see the WorldState is
+genuinely dynamics-ready. Whatever the numbers are, they come straight from
+committed code.
+
+```bash
 python examples/forecast/multi_consumer.py     # one WorldState -> rules + forecast + an LLM-judge stub
 ```
 
-Reproduce the trained model and the annotated GIF:
+### The headline real-video result needs your own footage
+
+The learned-vs-baseline comparison and the annotated GIF were measured on real
+traffic video, which we don't redistribute — so that specific result isn't
+reproducible from this repo alone (only the trained checkpoint is committed). A
+learned MLP does **not** automatically beat constant velocity; `train_dynamics.py`
+prints the honest win-or-tie on *your* data. To regenerate it end-to-end on a clip
+of your own:
 
 ```bash
-python examples/forecast/export_trajectories.py v.mp4   # WorldState tracks -> JSON
-python examples/forecast/train_dynamics.py traj.json dynamics.ckpt   # train the MLP (torch)
-python examples/forecast/render_demo.py v.mp4 out.mp4   # the two-arrow demo video
+python examples/forecast/export_trajectories.py v.mp4 traj.json   # WorldState tracks -> JSON ([video]+[yolo])
+python examples/forecast/train_dynamics.py traj.json dynamics.ckpt   # train + report baseline vs learned (torch)
+python examples/forecast/forecast_video.py v.mp4                  # real-video constant-velocity baseline
+python examples/forecast/render_demo.py v.mp4 out.mp4             # the two-arrow demo video
 ```
 
 ## Files
@@ -40,7 +56,7 @@ python examples/forecast/render_demo.py v.mp4 out.mp4   # the two-arrow demo vid
 | `export_trajectories.py` | Run Retina (YOLO) → per-entity centroid tracks → JSON. |
 | `render_demo.py` | Render the annotated two-arrow demo video. |
 | `quick_forecast.py` · `forecast_video.py` · `multi_consumer.py` | Synthetic proof · real-video baseline · one-state-many-consumers. |
-| `dynamics.ckpt` | The trained MLP weights (committed, so the GIF is reproducible). |
+| `dynamics.ckpt` | The trained MLP weights from the demo footage (committed for the GIF; retrain on your own clip with `train_dynamics.py`). |
 
 ## What this is (and isn't)
 

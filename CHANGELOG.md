@@ -8,6 +8,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Example `examples/latent_vec.py`: populate the dual-state latent `vec` channel by
+  hand (attach your own embedding → `WorldState` entity → serialize → round-trip),
+  runnable with numpy only — shows the latent interface is usable before the
+  built-in producers ship.
 - `Detection.from_supervision(detections, class_names=None)`: ingest a Roboflow
   Supervision `sv.Detections` into `list[Detection]` by duck-typing (no
   `supervision` import), so Supervision users plug straight into Retina's event
@@ -20,6 +24,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Examples: `examples/rtsp_to_webhook.py` (camera → restricted-zone alert →
   webhook) and `examples/from_supervision.py` (ingest a Roboflow `sv.Detections`
   pipeline), both runnable with no model / GPU / network on synthetic input.
+
+### Changed
+
+- `[all]` extra now installs every optional adapter's deps, including `grounding`
+  (transformers + torch + pillow), so it is genuinely "everything" as the README says.
+- Honesty pass on forecast claims: dropped the unreproducible "−35%" learned-vs-baseline
+  number from the README hero caption and the forecast README (the training footage
+  isn't redistributed). `quick_forecast.py` is documented as the reproducible,
+  no-footage demo; the real-video result is clearly marked as needing your own clip.
+- README latent-channel wording reconciled with `DESIGN.md`: the latent `vec` is a
+  shipped, serializable *interface*; the automatic V-JEPA / ReID *producers* are
+  roadmap, not shipped.
+- Noted that examples ship with the source tree (`git clone`), not the installed wheel.
 
 ## [0.1.0] — 2026-06-17
 
