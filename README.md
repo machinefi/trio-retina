@@ -1,21 +1,20 @@
+<div align="center">
+
 # Trio Retina
 
-**Turn any perception model's output into one standard, queryable world-state — symbolic events, with a latent-vector channel built in.**
-The model-agnostic state layer for world models.
+<img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png" width="840" alt="The world-model stack: any perception model — YOLO, DINOv2, V-JEPA 2 — feeds Trio Retina's one standard WorldState, which any dynamics / world model builds on top of">
+
+**The state layer of the world-model stack** — bring any perception model on top, get one standard, model-agnostic `WorldState`, build any dynamics underneath. Swap the model or the dynamics; **Retina is the constant in the middle.**
+
+[![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/trio-retina.svg)](https://pypi.org/project/trio-retina/) [![Docs](https://img.shields.io/badge/docs-live-brightgreen.svg)](https://machinefi.github.io/trio-retina/) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+
+**[docs](https://machinefi.github.io/trio-retina/)** · **[quickstart](#-quickstart)** · **[the world-model stack](#-the-world-model-stack)** · **[benchmark](BENCHMARK.md)** · **[examples](examples/)** · **[notebooks](notebooks/)**
+
+</div>
 
 *A lightweight, model-agnostic **computer-vision pipeline** for **object detection & tracking** that emits structured **events** — zone intrusion, line-crossing, dwell, people-counting — from **YOLO**, **VLM**, or **Grounding DINO** detectors over video, files, or **RTSP**. Runs on CPU at the **edge**; feeds **digital twins**, dynamics models, and LLMs.*
 
 > Just want camera events (zone intrusion, line-crossing) pushed to a webhook? → jump to the [5-line quickstart](#-quickstart), or copy [`examples/rtsp_to_webhook.py`](examples/rtsp_to_webhook.py).
-
-[![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/trio-retina.svg)](https://pypi.org/project/trio-retina/)
-[![Docs](https://img.shields.io/badge/docs-live-brightgreen.svg)](https://machinefi.github.io/trio-retina/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-
-![The world-model stack: any perception model (YOLO, DINOv2, V-JEPA 2) feeds into Trio Retina's one standard WorldState, which any dynamics / world model builds on top of](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png)
-
-> **The state layer of the world-model stack.** Bring any perception model on top (YOLO · DINOv2 · V-JEPA 2 · a VLM); Retina turns its output into *one* standard, model-agnostic `WorldState` — symbolic events + a latent `vec`. Any dynamics model underneath (forecasting · Dreamer-style imagination · policy · digital twins) builds on that. Swap the model above or the dynamics below — **Retina is the constant in the middle.** → [see it end to end](#-the-world-model-stack)
 
 ## 👋 hello
 
