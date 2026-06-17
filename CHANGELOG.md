@@ -6,6 +6,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `ZoneRule(exit_grace_s=...)`: a track stays logically inside until it has been
+  out-of-zone or absent for `exit_grace_s` seconds, so a single-frame detection
+  blip or id flicker no longer emits a spurious `zone.exit` or resets the dwell
+  timer. The exit `dur` is measured to the last frame seen inside.
+- `anchor` param on `ZoneRule` / `CountRule` (`center` default, `feet`, `head`)
+  selecting which body-point of the bbox tests zone membership.
+
 ## [0.0.4]
 
 ### Added

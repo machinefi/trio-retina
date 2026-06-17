@@ -46,9 +46,30 @@ def _match_class(label: str, classes: set[str] | None) -> bool:
     return classes is None or label in classes
 
 
+_ANCHORS = ("center", "feet", "head")
+
+
+def _anchor_point(trk: Track, anchor: str):
+    """The body-point used to test zone membership. `center` is the bbox
+    centroid (default), `feet` the bottom-center, `head` the top-center."""
+    if anchor == "center":
+        return trk.centroid
+    x1, y1, x2, y2 = trk.bbox
+    cx = (x1 + x2) / 2.0
+    if anchor == "feet":
+        return (cx, y2)
+    return (cx, y1)  # head
+
+
 class ZoneRule(_RuleBase):
     """`zone.enter` on entry, `zone.exit` on departure, `zone.dwell` once a track
-    has stayed `dwell_s` seconds inside (fires once per visit)."""
+    has stayed `dwell_s` seconds inside (fires once per visit).
+
+    `exit_grace_s` keeps a track logically inside until it has been out-of-zone
+    or absent for that long (rides out detection blips / id flicker without a
+    spurious exit; the exit `dur` is measured to the last frame seen inside).
+    `anchor` picks the body-point tested against the polygon: `center` (default,
+    the centroid), `feet` (bottom-center of bbox), or `head` (top-center)."""
 
     def __init__(
         self,
@@ -57,14 +78,23 @@ class ZoneRule(_RuleBase):
         src: str | None = None,
         classes: set[str] | None = None,
         dwell_s: float | None = None,
+        exit_grace_s: float = 0.0,
+        anchor: str = "center",
         frame_size: tuple[int, int] | None = None,
     ):
+        if anchor not in _ANCHORS:
+            raise ValueError(f"unsupported anchor: {anchor}")
         self._zone = zone
         self._src = src
         self._classes = classes
         self._dwell_s = dwell_s
+        self._exit_grace_s = exit_grace_s
+        self._anchor = anchor
         self._frame_size = frame_size
-        self._inside: dict[int, list] = {}  # track_id -> [entered_at, dwell_fired]
+        # track_id -> [entered_at, dwell_fired, last_inside_t]. A track stays
+        # logically inside until it has been out/absent for >= exit_grace_s; the
+        # exit `dur` is then measured to last_inside_t, not the current t.
+        self._inside: dict[int, list] = {}
 
     def update(self, tracks: list[Track], t: float, frame_idx: int) -> list[Event]:
         events: list[Event] = []
@@ -74,14 +104,16 @@ class ZoneRule(_RuleBase):
         for trk in tracks:
             if not _match_class(trk.label, self._classes):
                 continue
-            inside = point_in_polygon(trk.centroid, poly)
+            inside = point_in_polygon(_anchor_point(trk, self._anchor), poly)
             state = self._inside.get(trk.track_id)
 
             if inside and state is None:
-                self._inside[trk.track_id] = [t, False]
+                self._inside[trk.track_id] = [t, False, t]
                 events.append(self._ev(EventType.ZONE_ENTER, trk, t, frame_idx))
             elif inside and state is not None:
-                entered_at, dwell_fired = state
+                # Back inside (possibly within grace): resume normal accounting.
+                state[2] = t
+                entered_at, dwell_fired, _ = state
                 if (
                     self._dwell_s is not None
                     and not dwell_fired
@@ -92,27 +124,41 @@ class ZoneRule(_RuleBase):
                         self._ev(EventType.ZONE_DWELL, trk, entered_at, frame_idx, dur=t - entered_at)
                     )
             elif not inside and state is not None:
-                entered_at, _ = state
-                del self._inside[trk.track_id]
-                events.append(
-                    self._ev(EventType.ZONE_EXIT, trk, entered_at, frame_idx, dur=t - entered_at)
-                )
-
-        # A track that vanished while inside also counts as an exit.
-        for tid in list(self._inside):
-            if tid not in present:
-                entered_at, _ = self._inside.pop(tid)
-                events.append(
-                    Event(
-                        type=EventType.ZONE_EXIT,
-                        t=entered_at,
-                        src=self._src,
-                        id=tid,
-                        zone=self._zone.zone_id,
-                        dur=round(t - entered_at, 3),
-                        ext={"reason": "track_lost"},
+                entered_at, _, last_inside_t = state
+                if (t - last_inside_t) >= self._exit_grace_s:
+                    del self._inside[trk.track_id]
+                    # With no grace, the exit dates to the current frame (legacy
+                    # behavior); with grace, to the last frame actually inside.
+                    left_t = t if self._exit_grace_s == 0.0 else last_inside_t
+                    events.append(
+                        self._ev(
+                            EventType.ZONE_EXIT, trk, entered_at, frame_idx,
+                            dur=left_t - entered_at,
+                        )
                     )
+                # else: still within grace -> stays logically inside, no event.
+
+        # A track that vanished while inside also counts as an exit, subject to
+        # the same grace window (a brief id flicker does not fire a spurious exit).
+        for tid in list(self._inside):
+            if tid in present:
+                continue
+            entered_at, _, last_inside_t = self._inside[tid]
+            if (t - last_inside_t) < self._exit_grace_s:
+                continue  # within grace -> still logically inside
+            del self._inside[tid]
+            left_t = t if self._exit_grace_s == 0.0 else last_inside_t
+            events.append(
+                Event(
+                    type=EventType.ZONE_EXIT,
+                    t=entered_at,
+                    src=self._src,
+                    id=tid,
+                    zone=self._zone.zone_id,
+                    dur=round(left_t - entered_at, 3),
+                    ext={"reason": "track_lost"},
                 )
+            )
         return events
 
     def _ev(self, etype, trk, t, frame_idx, dur=None) -> Event:
@@ -185,16 +231,20 @@ class CountRule(_RuleBase):
         classes: set[str] | None = None,
         zone: Zone | None = None,
         comparator: str = ">=",
+        anchor: str = "center",
         frame_size: tuple[int, int] | None = None,
         emit_initial: bool = False,
     ):
         if comparator not in (">=", ">", "<=", "<"):
             raise ValueError(f"unsupported comparator: {comparator}")
+        if anchor not in _ANCHORS:
+            raise ValueError(f"unsupported anchor: {anchor}")
         self._src = src
         self._threshold = threshold
         self._classes = classes
         self._zone = zone
         self._comparator = comparator
+        self._anchor = anchor
         self._frame_size = frame_size
         # None = establish a baseline on the first frame without firing (only
         # real False->True transitions emit). emit_initial=True fires on frame 1
@@ -207,7 +257,7 @@ class CountRule(_RuleBase):
         for trk in tracks:
             if not _match_class(trk.label, self._classes):
                 continue
-            if poly is not None and not point_in_polygon(trk.centroid, poly):
+            if poly is not None and not point_in_polygon(_anchor_point(trk, self._anchor), poly):
                 continue
             n += 1
         return n
