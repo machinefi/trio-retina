@@ -6,6 +6,7 @@ The model-agnostic state layer for world models.
 *A lightweight, model-agnostic **computer-vision pipeline** for **object detection & tracking** that emits structured **events** — zone intrusion, line-crossing, dwell, people-counting — from **YOLO**, **VLM**, or **Grounding DINO** detectors over video, files, or **RTSP**. Runs on CPU at the **edge**; feeds **digital twins**, dynamics models, and LLMs.*
 
 [![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-live-brightgreen.svg)](https://machinefi.github.io/trio-retina/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
@@ -192,7 +193,7 @@ Full rationale, references, and the world-model stack: [`DESIGN.md`](DESIGN.md).
 
 ## 🗺️ roadmap
 
-Early but real (`v0.1.0`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors, IoU + Norfair trackers.
+Early but real (`v0.1.0`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors (plus `from_supervision` interop), IoU + Norfair trackers, and jitter-robust rules (`exit_grace_s` · `anchor` · `min_frames`).
 
 Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · the **latent channel** (surface V-JEPA scene + per-object embeddings). See [`CHANGELOG.md`](CHANGELOG.md).
 
