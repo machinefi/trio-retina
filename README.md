@@ -8,6 +8,7 @@ The model-agnostic state layer for world models.
 > Just want camera events (zone intrusion, line-crossing) pushed to a webhook? → jump to the [5-line quickstart](#-quickstart), or copy [`examples/rtsp_to_webhook.py`](examples/rtsp_to_webhook.py).
 
 [![CI](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml/badge.svg)](https://github.com/machinefi/trio-retina/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/trio-retina.svg)](https://pypi.org/project/trio-retina/)
 [![Docs](https://img.shields.io/badge/docs-live-brightgreen.svg)](https://machinefi.github.io/trio-retina/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
@@ -24,13 +25,11 @@ Think **OpenTelemetry for perception** — it doesn't build the sensors, it norm
 
 ## 💻 install
 
-From source — a PyPI `trio-retina` release is landing shortly:
-
 ```bash
-pip install "trio-retina @ git+https://github.com/machinefi/trio-retina"          # core: numpy only
-pip install "trio-retina[yolo]  @ git+https://github.com/machinefi/trio-retina"   # + Ultralytics YOLO adapter
-pip install "trio-retina[video] @ git+https://github.com/machinefi/trio-retina"   # + OpenCV frame source (files / RTSP / webcam)
-pip install "trio-retina[all]   @ git+https://github.com/machinefi/trio-retina"   # everything
+pip install trio-retina            # core: numpy only
+pip install 'trio-retina[yolo]'    # + Ultralytics YOLO adapter
+pip install 'trio-retina[video]'   # + OpenCV frame source (files / RTSP / webcam)
+pip install 'trio-retina[all]'     # everything
 ```
 
 ## 🔥 quickstart
