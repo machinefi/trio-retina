@@ -11,6 +11,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Colab notebooks (`notebooks/`): runnable, zero-install quickstart, camera→webhook,
   and from-Supervision demos that print `retina.event` JSON on synthetic input.
 
+### Changed
+
+- `CountRule(threshold)` now accepts `threshold` positionally, so `CountRule(3)`
+  works; `CountRule(threshold=3)` is unchanged.
+- README headline quickstart now runs on a bare `pip install trio-retina` (numpy
+  only, no model / video) via a stand-in detector, with the YOLO + `video_frames`
+  form moved to a clearly-labeled `[yolo]` block below it.
+
+### Fixed
+
+- `CountRule(3)` no longer raises a confusing `TypeError` from the keyword-only
+  `threshold` (front-door friction for new users).
+
 ## [0.2.0] — 2026-06-17
 
 ### Added

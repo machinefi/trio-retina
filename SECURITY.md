@@ -2,8 +2,8 @@
 
 ## Supported versions
 
-Retina is in early development (`0.0.x`). Security fixes are applied to the latest
-release on the `main` branch.
+Retina is on the `0.2.x` line. Security fixes are applied to the latest release
+on the `main` branch.
 
 ## Reporting a vulnerability
 

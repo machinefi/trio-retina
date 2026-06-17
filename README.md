@@ -34,6 +34,49 @@ pip install 'trio-retina[all]'     # everything
 
 ## 🔥 quickstart
 
+Runs on a bare `pip install trio-retina` (numpy only) — no model, no GPU, no video file. A stand-in detector walks one "person" across a dock zone; Retina emits the real `retina.event` stream:
+
+```python
+import numpy as np
+
+from retina import CountRule, IoUTracker, Retina, Zone, ZoneRule
+from retina.detect import Detection
+
+
+class ScriptedDetector:
+    """A stand-in model: one 'person' walking across a dock zone."""
+
+    def __init__(self):
+        self._xs = list(range(0, 102, 6))
+
+    def __call__(self, frame):
+        x = self._xs.pop(0) if self._xs else 100
+        return [Detection(label="person", bbox=(x - 10, 40, x + 10, 60), confidence=0.9)]
+
+
+dock = Zone("dock", [(40, 0), (60, 0), (60, 100), (40, 100)])
+
+cam = Retina(
+    source_id="cam_01",
+    detector=ScriptedDetector(),
+    tracker=IoUTracker(min_hits=2),
+    rules=[
+        ZoneRule(dock, classes={"person"}, dwell_s=2.0),
+        CountRule(1, classes={"person"}),
+    ],
+)
+
+frames = [(np.zeros((100, 100, 3), dtype=np.uint8), float(i)) for i in range(18)]
+for event in cam.run(frames):
+    print(event.to_json())
+    # {"type":"count.threshold","t":1.0,"src":"cam_01","n":1,"frame":1,...}
+    # {"type":"zone.enter","t":7.0,"src":"cam_01","id":1,"label":"person",...}
+    # {"type":"zone.dwell","t":7.0,...,"zone":"dock","dur":2.0,...}
+    # {"type":"zone.exit","t":7.0,...,"zone":"dock","dur":3.0,...}
+```
+
+**▶ with a real model + video** — `pip install 'trio-retina[yolo]'` (add `[video]` for the frame source), then point it at your clip:
+
 ```python
 from retina import Retina, Zone, ZoneRule, YoloDetector
 from retina.sources import video_frames
@@ -45,13 +88,13 @@ cam = Retina(
     detector=YoloDetector("yolo11n.pt", classes={"person"}),
     rules=[ZoneRule(dock, classes={"person"}, dwell_s=30)],
 )
-for event in cam.run(video_frames("dock.mp4")):
+for event in cam.run(video_frames("your.mp4")):
     print(event.to_json())
     # {"type":"zone.dwell","t":1718254799.8,"src":"cam_01","id":42,
     #  "label":"person","zone":"dock","dur":31.0,"conf":0.91}
 ```
 
-No model, no GPU? The [`examples/`](examples/) quickstarts run on synthetic detections — `git clone` the repo (they ship with the source, not the wheel) and start with `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
+More no-model examples ship with the source (not the wheel) — `git clone` the repo and run `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
 
 **▶️ Or run it in your browser — no install:**
 

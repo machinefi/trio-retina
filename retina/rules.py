@@ -269,8 +269,8 @@ class CountRule(_RuleBase):
 
     def __init__(
         self,
-        *,
         threshold: int,
+        *,
         src: str | None = None,
         classes: set[str] | None = None,
         zone: Zone | None = None,

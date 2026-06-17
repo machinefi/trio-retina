@@ -24,6 +24,16 @@ def _tracks(n):
     return [_track(i) for i in range(n)]
 
 
+def test_count_rule_threshold_positional():
+    # CountRule(3) is the beginner-friendly form; threshold is the first
+    # positional arg and stays equivalent to the keyword form.
+    rule = CountRule(3)
+    assert rule.update(_tracks(2), 0.0, 0) == []  # 2 >= 3 False
+    out = rule.update(_tracks(3), 1.0, 1)  # 3 >= 3 -> fire
+    assert len(out) == 1
+    assert out[0].ext["threshold"] == 3
+
+
 def test_count_rule_rejects_bad_comparator():
     with pytest.raises(ValueError):
         CountRule(threshold=1, comparator="!=")
