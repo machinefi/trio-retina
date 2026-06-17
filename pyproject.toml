@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "retina-sdk"
+name = "trio-retina"
 version = "0.1.0"
 description = "Model-agnostic computer-vision pipeline: turn any detector (YOLO, VLM, Grounding DINO) into structured tracking events — zone intrusion, line-crossing, dwell, counting — over video or RTSP. The state layer for world models."
 readme = "README.md"

@@ -43,7 +43,7 @@ def main(src: str | None, webhook_url: str | None) -> None:
         detector = ScriptedDetector()
         frames = [(np.zeros((100, 100, 3), np.uint8), float(i)) for i in range(18)]
     else:
-        from retina import YoloDetector  # needs retina-sdk[yolo]
+        from retina import YoloDetector  # needs trio-retina[yolo]
 
         detector = YoloDetector("yolo11n.pt", classes={"person"})
         frames = video_frames(src, live=True)  # RTSP / HLS / webcam, wall-clock t

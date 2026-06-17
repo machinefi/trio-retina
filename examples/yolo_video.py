@@ -1,6 +1,6 @@
 """Real-model demo: YOLO on a video file -> events to JSONL.
 
-    pip install 'retina-sdk[all]'
+    pip install 'trio-retina[all]'
     python examples/yolo_video.py path/to/video.mp4
 
 Same code shape as quickstart — only the detector and source change. That's the

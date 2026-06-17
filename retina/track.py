@@ -171,7 +171,7 @@ class IoUTracker(Pipeable):
 
 class NorfairTracker(Pipeable):
     """Norfair adapter — pure-Python Kalman tracking with re-association, better
-    ID stability through occlusion than IoUTracker. `pip install 'retina-sdk[norfair]'`.
+    ID stability through occlusion than IoUTracker. `pip install 'trio-retina[norfair]'`.
 
     Surfaces only tracks detected *this* frame (coasting/occluded ones are kept
     internally for re-association but not returned, so occupancy/dwell stay honest)."""
@@ -188,7 +188,7 @@ class NorfairTracker(Pipeable):
             from norfair import Tracker as _NfTracker
         except ImportError as e:  # pragma: no cover - exercised only with extra
             raise ImportError(
-                "NorfairTracker needs norfair. Install with: pip install 'retina-sdk[norfair]'"
+                "NorfairTracker needs norfair. Install with: pip install 'trio-retina[norfair]'"
             ) from e
         self._nf = _NfTracker(
             distance_function="euclidean",

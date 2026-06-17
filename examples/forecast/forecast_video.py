@@ -7,7 +7,7 @@ On real motion (cars turning / accelerating) the velocity model beats no-motion
 but is far from perfect — that gap is what a learned, interaction-aware dynamics
 model is for.
 
-    pip install 'retina-sdk[yolo,video]'
+    pip install 'trio-retina[yolo,video]'
     python examples/forecast/forecast_video.py /tmp/demo.mp4
 """
 

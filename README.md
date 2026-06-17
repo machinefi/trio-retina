@@ -24,13 +24,13 @@ Think **OpenTelemetry for perception** — it doesn't build the sensors, it norm
 
 ## 💻 install
 
-From source — a PyPI `retina-sdk` release is landing shortly:
+From source — a PyPI `trio-retina` release is landing shortly:
 
 ```bash
-pip install "retina-sdk @ git+https://github.com/machinefi/trio-retina"          # core: numpy only
-pip install "retina-sdk[yolo]  @ git+https://github.com/machinefi/trio-retina"   # + Ultralytics YOLO adapter
-pip install "retina-sdk[video] @ git+https://github.com/machinefi/trio-retina"   # + OpenCV frame source (files / RTSP / webcam)
-pip install "retina-sdk[all]   @ git+https://github.com/machinefi/trio-retina"   # everything
+pip install "trio-retina @ git+https://github.com/machinefi/trio-retina"          # core: numpy only
+pip install "trio-retina[yolo]  @ git+https://github.com/machinefi/trio-retina"   # + Ultralytics YOLO adapter
+pip install "trio-retina[video] @ git+https://github.com/machinefi/trio-retina"   # + OpenCV frame source (files / RTSP / webcam)
+pip install "trio-retina[all]   @ git+https://github.com/machinefi/trio-retina"   # everything
 ```
 
 ## 🔥 quickstart
@@ -146,7 +146,7 @@ python examples/rtsp_to_webhook.py     # camera -> restricted-zone alert -> webh
 python examples/from_supervision.py    # ingest a Roboflow sv.Detections pipeline
 ```
 
-Real-footage / dynamics demos need a clip and the extras — `pip install 'retina-sdk[all]'`:
+Real-footage / dynamics demos need a clip and the extras — `pip install 'trio-retina[all]'`:
 
 ```bash
 python examples/yolo_video.py v.mp4    # YOLO on a video file
@@ -195,7 +195,7 @@ Everything flows through one append-only data unit, the **`Frame`**. Each stage 
 
 | | DeepStream / Holoscan | **Retina** |
 |---|---|---|
-| Install | CUDA + TensorRT + containers | `pip install retina-sdk` |
+| Install | CUDA + TensorRT + containers | `pip install trio-retina` |
 | Hardware | NVIDIA / Jetson locked | any machine — CPU is fine |
 | Model | tied to the NV stack | **bring any model** (or none) |
 | Shape | a platform you build *inside* | a library you `import` |

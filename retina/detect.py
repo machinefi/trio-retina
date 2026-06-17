@@ -126,7 +126,7 @@ class CallableDetector(Pipeable):
 
 
 class YoloDetector(Pipeable):
-    """Optional Ultralytics YOLO adapter. `pip install retina-sdk[yolo]`.
+    """Optional Ultralytics YOLO adapter. `pip install trio-retina[yolo]`.
 
     Loads any Ultralytics weights — YOLOv5/8/9/10/11/12, YOLO-World, RT-DETR —
     so swapping models is just a different weights string. Not imported unless
@@ -150,7 +150,7 @@ class YoloDetector(Pipeable):
             from ultralytics import YOLO
         except ImportError as e:  # pragma: no cover - exercised only with extra
             raise ImportError(
-                "YoloDetector needs ultralytics. Install with: pip install 'retina-sdk[yolo]'"
+                "YoloDetector needs ultralytics. Install with: pip install 'trio-retina[yolo]'"
             ) from e
         self._model = YOLO(weights)
         # Open-vocabulary: with a YOLO-World weights file, `vocab` sets the
@@ -232,7 +232,7 @@ class VlmDetector(Pipeable):
 
 class GroundingDinoDetector(Pipeable):
     """Open-vocabulary detection from a text prompt via Grounding DINO (HF
-    transformers). `pip install 'retina-sdk[grounding]'`. Detects any classes you
+    transformers). `pip install 'trio-retina[grounding]'`. Detects any classes you
     name — no training. Heavy (torch); not imported unless instantiated."""
 
     def __init__(
@@ -249,7 +249,7 @@ class GroundingDinoDetector(Pipeable):
         except ImportError as e:  # pragma: no cover - exercised only with extra
             raise ImportError(
                 "GroundingDinoDetector needs transformers+torch. "
-                "Install with: pip install 'retina-sdk[grounding]'"
+                "Install with: pip install 'trio-retina[grounding]'"
             ) from e
         self._processor = AutoProcessor.from_pretrained(model_id)
         self._model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id)

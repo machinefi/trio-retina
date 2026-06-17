@@ -3,7 +3,7 @@
 A source is just an iterable of `(frame, timestamp)` pairs, so the core never
 depends on OpenCV — you can feed it a list of numpy arrays in tests. The
 `video_frames` helper is an optional convenience that uses OpenCV (install with
-`pip install 'retina-sdk[video]'`) for files / RTSP / webcam.
+`pip install 'trio-retina[video]'`) for files / RTSP / webcam.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def video_frames(
         import cv2
     except ImportError as e:  # pragma: no cover - exercised only with extra
         raise ImportError(
-            "video_frames needs OpenCV. Install with: pip install 'retina-sdk[video]'"
+            "video_frames needs OpenCV. Install with: pip install 'trio-retina[video]'"
         ) from e
 
     cap = cv2.VideoCapture(source)
