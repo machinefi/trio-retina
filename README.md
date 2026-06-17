@@ -53,6 +53,14 @@ for event in cam.run(video_frames("dock.mp4")):
 
 No model, no GPU? The [`examples/`](examples/) quickstarts run on synthetic detections — `git clone` the repo (they ship with the source, not the wheel) and start with `python examples/quickstart.py` (the forecast / video demos need `[video]` + a clip).
 
+**▶️ Or run it in your browser — no install:**
+
+| notebook | what it shows |
+|---|---|
+| [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/machinefi/trio-retina/blob/main/notebooks/01_quickstart_events.ipynb) | **quickstart** — detector → `zone` / `line` / `count` / `dwell` events + `validate()` |
+| [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/machinefi/trio-retina/blob/main/notebooks/02_camera_to_webhook.ipynb) | **camera → webhook** — a restricted-zone alert pushed to your endpoint |
+| [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/machinefi/trio-retina/blob/main/notebooks/03_from_supervision.ipynb) | **from Supervision** — pipe your existing `sv.Detections` straight in |
+
 ### compose models with `|`
 
 Wire models like n8n / LangChain, no GUI. Add a cheap gate and a VLM enricher anywhere in the chain:
@@ -96,7 +104,17 @@ Register your own for `from_json` with `register_node("my_type", builder)`.
 
 ## 🎛️ supported models
 
-Retina imports no model — **any** `callable(image) -> [Detection]` plugs in (`CallableDetector` wraps a function in one line). Batteries-included:
+Retina imports no model — **any** detector plugs in, and out comes one standard event stream. That seam *is* the point:
+
+| plug in any detector… | → | …out comes one `retina.event` stream |
+|---|:---:|---|
+| **YOLO** (Ultralytics: v5–v12, RT-DETR) | → | `{"type":"zone.enter", "id":42, "label":"person", …}` |
+| **any VLM** (GPT-4o · Qwen-VL · Gemini · Claude) | → | `{"type":"line.cross", "dir":"a_to_b", …}` |
+| **Grounding DINO** (open-vocab, no training) | → | `{"type":"zone.dwell", "dur":31.0, …}` |
+| your existing **`sv.Detections`** (Supervision) | → | `{"type":"count.threshold", "n":12, …}` |
+| any **`callable(image) -> [Detection]`** | → | …+ an optional latent `vec` on the same record |
+
+Supervision gives you boxes on a screen; Retina turns *any* of those into a serializable state + event stream the next layer (dynamics, twin, agent) can consume. Batteries-included adapters:
 
 - **YOLO family** — `YoloDetector("<weights>.pt")` (Ultralytics): YOLOv5/8/9/10/11/12, RT-DETR. Open-vocab via YOLO-World.
 - **Open-vocab from text** — `GroundingDinoDetector(["forklift", "hard hat"])`, no training.
