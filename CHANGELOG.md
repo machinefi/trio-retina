@@ -6,6 +6,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Colab notebooks (`notebooks/`): runnable, zero-install quickstart, camera→webhook,
+  and from-Supervision demos that print `retina.event` JSON on synthetic input.
+
 ## [0.2.0] — 2026-06-17
 
 ### Added
