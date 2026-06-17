@@ -9,3 +9,4 @@ build/
 site/
 *.pt
 events.jsonl
+uv.lock

@@ -28,7 +28,7 @@ What actually happened (include the full traceback if there is one).
 
 ## Environment
 
-- Trio Retina version: <!-- e.g. 0.0.4 -->
+- Trio Retina version: <!-- e.g. 0.1.0 -->
 - Python version: <!-- e.g. 3.11 -->
 - OS: <!-- e.g. macOS 14, Ubuntu 22.04 -->
 - Optional extras installed: <!-- e.g. [yolo], [video], none -->

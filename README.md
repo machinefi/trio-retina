@@ -21,11 +21,13 @@ Think **OpenTelemetry for perception** — it doesn't build the sensors, it norm
 
 ## 💻 install
 
+From source — a PyPI `retina-sdk` release is landing shortly:
+
 ```bash
-pip install retina-sdk            # core: numpy only
-pip install 'retina-sdk[yolo]'    # + Ultralytics YOLO adapter
-pip install 'retina-sdk[video]'   # + OpenCV frame source (files / RTSP / webcam)
-pip install 'retina-sdk[all]'     # everything
+pip install "retina-sdk @ git+https://github.com/machinefi/trio-retina"          # core: numpy only
+pip install "retina-sdk[yolo]  @ git+https://github.com/machinefi/trio-retina"   # + Ultralytics YOLO adapter
+pip install "retina-sdk[video] @ git+https://github.com/machinefi/trio-retina"   # + OpenCV frame source (files / RTSP / webcam)
+pip install "retina-sdk[all]   @ git+https://github.com/machinefi/trio-retina"   # everything
 ```
 
 ## 🔥 quickstart
@@ -189,7 +191,7 @@ Full rationale, references, and the world-model stack: [`DESIGN.md`](DESIGN.md).
 
 ## 🗺️ roadmap
 
-Early but real (`v0.0.4`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors, IoU + Norfair trackers.
+Early but real (`v0.1.0`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors, IoU + Norfair trackers.
 
 Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · the **latent channel** (surface V-JEPA scene + per-object embeddings). See [`CHANGELOG.md`](CHANGELOG.md).
 

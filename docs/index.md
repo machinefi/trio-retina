@@ -8,11 +8,13 @@ Think **OpenTelemetry for perception** — it doesn't build the sensors, it norm
 
 ## Install
 
+From source — a PyPI `retina-sdk` release is landing shortly:
+
 ```bash
-pip install retina-sdk            # core: numpy only
-pip install 'retina-sdk[yolo]'    # + Ultralytics YOLO adapter
-pip install 'retina-sdk[video]'   # + OpenCV frame source (files / RTSP / webcam)
-pip install 'retina-sdk[all]'     # everything
+pip install "retina-sdk @ git+https://github.com/machinefi/trio-retina"          # core: numpy only
+pip install "retina-sdk[yolo]  @ git+https://github.com/machinefi/trio-retina"   # + Ultralytics YOLO adapter
+pip install "retina-sdk[video] @ git+https://github.com/machinefi/trio-retina"   # + OpenCV frame source (files / RTSP / webcam)
+pip install "retina-sdk[all]   @ git+https://github.com/machinefi/trio-retina"   # everything
 ```
 
 ## Quickstart

@@ -6,6 +6,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-06-17
+
+First public open-source release.
+
 ### Added
 
 - `ZoneRule(exit_grace_s=...)`: a track stays logically inside until it has been
@@ -85,7 +89,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`JsonlSink`, `WebhookSink`).
 - `event_f1` / `match_events`: a generic metric to compare two event streams.
 
-[Unreleased]: https://github.com/machinefi/trio-retina/compare/main...HEAD
+[Unreleased]: https://github.com/machinefi/trio-retina/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/machinefi/trio-retina/releases/tag/v0.1.0
 [0.0.4]: https://github.com/machinefi/trio-retina
 [0.0.3]: https://github.com/machinefi/trio-retina
 [0.0.2]: https://github.com/machinefi/trio-retina

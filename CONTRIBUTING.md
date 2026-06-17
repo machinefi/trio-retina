@@ -10,19 +10,25 @@ Retina has a numpy-only core, so a basic environment is light:
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -e '.[dev]'
+pip install -e '.[dev]'          # or just: pip install numpy pytest ruff
 ```
+
+The core is `numpy`-only and `pytest` reads `retina` straight from the source
+tree (`pythonpath = ["."]`), so `pytest -q` runs on a bare checkout — the
+editable install above is a convenience, not a requirement.
 
 ## Tests & lint
 
 ```bash
-pytest -q             # run the test suite
-ruff check .          # lint
-ruff format .         # auto-format (line-length = 100)
+make test     # pytest -q
+make lint     # ruff check .
+make format   # ruff format .   (line-length = 100)
+make help     # all tasks
 ```
 
-Both `ruff check .` and `pytest -q` must be green before you open a PR — CI runs
-exactly these across Python 3.10–3.13.
+Optional: `pip install pre-commit && pre-commit install` runs the same ruff
+checks on every commit. Both `ruff check .` and `pytest -q` must be green before
+you open a PR — CI runs exactly these across Python 3.10–3.13.
 
 ## Design principles
 
