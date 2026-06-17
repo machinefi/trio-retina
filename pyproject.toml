@@ -77,3 +77,6 @@ ignore = ["E501"]
 "retina/track.py" = ["B007"]
 "examples/*" = ["I001"]
 "tests/*" = ["I001"]
+# Notebooks are teaching artifacts: allow illustrative imports (e.g. showing
+# `WebhookSink` next to a swap comment) and unsorted cell imports.
+"notebooks/*" = ["I001", "F401"]
