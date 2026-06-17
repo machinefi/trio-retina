@@ -8,11 +8,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `examples/bench_overhead.py`: honest numpy-only micro-benchmark of the Retina-layer
+  overhead (tracker + rules + event build, detector excluded) in ms/frame.
+- `tests/test_sources.py`: unit tests for the live-source path using a fake capture
+  stub — read-failure→recovery and slow-consumer drop-to-latest run with no cv2 and
+  no real RTSP (via the `capture_factory` injection seam).
 - Colab notebooks (`notebooks/`): runnable, zero-install quickstart, camera→webhook,
   and from-Supervision demos that print `retina.event` JSON on synthetic input.
 
 ### Changed
 
+- `video_frames` no longer ends the generator on a transient live (`rtsp://` /
+  `live=True` / webcam) `cap.read()` failure: it reconnects with exponential
+  backoff and, for live sources, drops to the latest frame under back-pressure.
+  Finite files are unchanged — a real EOF still ends the generator and every
+  frame is delivered (no reconnect, no dropping).
 - `CountRule(threshold)` now accepts `threshold` positionally, so `CountRule(3)`
   works; `CountRule(threshold=3)` is unchanged.
 - README headline quickstart now runs on a bare `pip install trio-retina` (numpy
