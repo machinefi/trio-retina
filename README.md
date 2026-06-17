@@ -13,9 +13,9 @@ The model-agnostic state layer for world models.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
-![Trio Retina computer-vision pipeline: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif)
+![Trio Retina world model: any detector becomes one standard WorldState, then a learned dynamics model imagines each entity's future trajectory](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_hero.gif)
 
-> One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity baseline, magenta = a learned model). Swap the detector (YOLO → V-JEPA → DINO) or the dynamics model — the state in the middle is the constant.
+> **Turn any detector into one standard world-state — then a learned dynamics model imagines what happens next.** From the *same* model-agnostic `WorldState`, a small transformer rolls out each entity's future (magenta = the learned model's imagination, gray = the actual future as it unfolds). The curving object diverges honestly — its type, and so its future, is legible only from the appearance latent. → [the world-model stack](#-the-world-model-stack)
 
 ## 👋 hello
 
@@ -186,6 +186,8 @@ Retina is the **encoder** (`s = Enc(x)`) in a world model. With the latent
 producers shipped, the whole front-to-back seam is now demonstrable end to end —
 on a synthetic scene, as a small but honest proof of concept ([`examples/world_model/`](examples/world_model/)):
 
+![The model-agnostic world-model seam: any encoder (YOLO · DINOv2 · V-JEPA2) → one standard Retina WorldState → any dynamics model](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_seam.png)
+
 **1 · swap the encoder, the state is constant.** The same pipeline, run three
 ways — symbolic-only, `+ DinoV2Embedder` (per-object `entity.vec`), and
 `+ VJepa2Embedder` (scene-level `ws.scene`) — yields the *identical* WorldState
@@ -209,7 +211,9 @@ error (px, lower is better):
 that's where local velocity runs out and object *type* (legible only from
 appearance) decides the future. → [`dynamics.py`](examples/world_model/dynamics.py), full grid in [`BENCHMARK.md`](BENCHMARK.md)
 
-![Imagination rollout vs ground truth — a learned dynamics model imagines future entity trajectories off Retina's WorldState](https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/world_model/media/rollout.png)
+![Imagination rollout — a learned dynamics model imagines future entity trajectories off Retina's WorldState; magenta = imagined, gray = actual](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_hero.gif)
+
+> The hero animation above, generated from the **real trained model** on a held-out sequence (Mac Studio, MPS): magenta is the model's genuine imagination rolled out in the standardized state space, gray is the actual future. The curving object's honest divergence is the appearance channel earning its keep. Static plot: [`media/rollout.png`](examples/world_model/media/rollout.png).
 
 **3 · front + back compose through one standard.** Any encoder in front, any
 dynamics behind, meeting on one serializable state — a pip-installable world-model
@@ -230,7 +234,11 @@ python examples/world_model/end_to_end.py   # encoder → WorldState → dynamic
 
 ### Forecast — the dynamics layer on top of Retina
 
-The hero GIF above. [`examples/forecast/`](examples/forecast/) runs a dynamics model on Retina's `WorldState` stream and shows *why* Retina is necessary: a dynamics model eats structured **state**, not pixels.
+![Trio Retina: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state — gray constant-velocity baseline vs magenta learned model](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif)
+
+> One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity baseline, magenta = a learned model).
+
+[`examples/forecast/`](examples/forecast/) runs a dynamics model on Retina's `WorldState` stream and shows *why* Retina is necessary: a dynamics model eats structured **state**, not pixels.
 
 ### iTwin.js — a live, predictive layer for a digital twin
 

@@ -8,6 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- World-model hero visual: `media/world_model_hero.gif`, an honest looping
+  imagination rollout rendered from the real trained dynamics model on a held-out
+  synthetic sequence (magenta = imagined, gray = actual), plus a minimal
+  `media/world_model_seam.png` (any encoder → one WorldState → any dynamics). The
+  README first screen now leads with the world-model story. Generators:
+  `examples/world_model/make_hero_gif.py` and `make_seam_png.py`.
 - `retina.embed.DinoV2Embedder`: the first real producer for the latent `vec`
   channel — a frozen DINOv2 per-object embedder (sizes small/base/large, dim
   384/768/1024) that crops each track and attaches a genuine self-supervised
