@@ -28,6 +28,61 @@ class Detection:
     embedding: np.ndarray | None = None  # optional re-id appearance vector
     attrs: dict[str, Any] = field(default_factory=dict)
 
+    @classmethod
+    def from_supervision(
+        cls,
+        detections,
+        class_names: dict[int, str] | list[str] | None = None,
+    ) -> list[Detection]:
+        """Ingest a Roboflow Supervision `sv.Detections` → `list[Detection]`.
+
+        Supervision is the de-facto interop format ~20+ CV libraries convert
+        into, so anyone already using it pipes straight into Retina's event
+        layer. We never import `supervision` — the object is read by
+        duck-typing: `.xyxy` (Nx4 [x1,y1,x2,y2]), `.confidence` (N or None),
+        `.class_id` (N or None), `.data` (dict, may hold `"class_name"`).
+
+        Label resolution, per row `i`: prefer `data["class_name"][i]`; else map
+        `class_id[i]` through `class_names` (dict or list); else `str(class_id)`;
+        else `""`. Missing `confidence` falls back to the `Detection` default."""
+        xyxy = getattr(detections, "xyxy", None)
+        if xyxy is None or len(xyxy) == 0:
+            return []
+        confidence = getattr(detections, "confidence", None)
+        class_id = getattr(detections, "class_id", None)
+        data = getattr(detections, "data", None) or {}
+        class_name = data.get("class_name") if isinstance(data, dict) else None
+
+        out: list[Detection] = []
+        for i, box in enumerate(xyxy):
+            x1, y1, x2, y2 = (float(v) for v in box)
+            label = _resolve_label(i, class_name, class_id, class_names)
+            kwargs: dict[str, Any] = {"label": label, "bbox": (x1, y1, x2, y2)}
+            if confidence is not None:
+                kwargs["confidence"] = float(confidence[i])
+            out.append(cls(**kwargs))
+        return out
+
+
+def _resolve_label(
+    i: int,
+    class_name,
+    class_id,
+    class_names: dict[int, str] | list[str] | None,
+) -> str:
+    """Pick the best available label for row `i` of an `sv.Detections`."""
+    if class_name is not None:
+        return str(class_name[i])
+    if class_id is None:
+        return ""
+    cid = int(class_id[i])
+    if isinstance(class_names, dict):
+        return str(class_names.get(cid, cid))
+    if isinstance(class_names, (list, tuple)):
+        if 0 <= cid < len(class_names):
+            return str(class_names[cid])
+    return str(cid)
+
 
 @runtime_checkable
 class Detector(Protocol):
