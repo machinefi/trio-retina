@@ -163,6 +163,7 @@ Supervision gives you boxes on a screen; Retina turns *any* of those into a seri
 - **Open-vocab from text** — `GroundingDinoDetector(["forklift", "hard hat"])`, no training.
 - **Any VLM** — `VlmDetector(client, prompt)` (Qwen-VL / Gemini / GPT-4o / Claude / local), as a detector or an event-source enricher.
 - **Supervision interop** — `Detection.from_supervision(sv_detections)` ingests a Roboflow `sv.Detections`, so anything that already converts to Supervision pipes straight into Retina's event layer.
+- **Latent `vec` producer (shipped)** — `DinoV2Embedder()` is the first real producer for the latent channel: a frozen DINOv2 per-object embedder that fills `entity.vec` with a genuine self-supervised embedding (`pip install 'trio-retina[dino]'`).
 
 Trackers are pluggable too: `IoUTracker` (pure-Python default) or `NorfairTracker`.
 
@@ -205,6 +206,7 @@ python examples/pipeline_compose.py    # compose with | (n8n without a GUI)
 python examples/rtsp_to_webhook.py     # camera -> restricted-zone alert -> webhook
 python examples/from_supervision.py    # ingest a Roboflow sv.Detections pipeline
 python examples/latent_vec.py          # populate the latent vec channel by hand
+python examples/dino_embeddings.py     # REAL DINOv2 per-object vecs (needs [dino])
 ```
 
 Real-footage / dynamics demos need a clip and the extras — `pip install 'trio-retina[all]'`:

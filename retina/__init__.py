@@ -34,6 +34,7 @@ from .detect import (
     VlmDetector,
     YoloDetector,
 )
+from .embed import DinoV2Embedder
 from .eval import event_f1, match_events
 from .events import SPEC, Event, EventType, Frame
 from .export import JsonlSink, WebhookSink, to_jsonl
@@ -84,6 +85,8 @@ __all__ = [
     "Tracker",
     "IoUTracker",
     "NorfairTracker",
+    # latent producers
+    "DinoV2Embedder",
     # zones / rules
     "Zone",
     "Line",

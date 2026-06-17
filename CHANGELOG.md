@@ -6,6 +6,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `retina.embed.DinoV2Embedder`: the first real producer for the latent `vec`
+  channel — a frozen DINOv2 per-object embedder (sizes small/base/large, dim
+  384/768/1024) that crops each track and attaches a genuine self-supervised
+  embedding flowing into `WorldState`/`entity.vec`. Lazy torch import (numpy-only
+  core); install via `pip install 'trio-retina[dino]'`. See
+  `examples/dino_embeddings.py`.
+
 ## [0.2.1] — 2026-06-17
 
 ### Added
