@@ -87,6 +87,40 @@ for event in cam.run(video_frames("your.mp4")):
 
 More no-model examples ship with the source (not the wheel) — `git clone` the repo and run `python examples/quickstart.py`. See also [`rtsp_to_webhook.py`](https://github.com/machinefi/trio-retina/blob/main/examples/rtsp_to_webhook.py), [`from_supervision.py`](https://github.com/machinefi/trio-retina/blob/main/examples/from_supervision.py), and [`latent_vec.py`](https://github.com/machinefi/trio-retina/blob/main/examples/latent_vec.py).
 
+## 🌍 The world-model stack
+
+Retina is the **encoder** (`s = Enc(x)`) of a world model. The whole front-to-back
+seam is demonstrable end to end — on a synthetic scene, as a small, honest proof of
+concept ([`examples/world_model/`](https://github.com/machinefi/trio-retina/tree/main/examples/world_model)):
+
+![A learned dynamics model imagines future entity trajectories off Retina's WorldState](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_hero.gif)
+
+*Turn any detector into one standard world-state — then a learned dynamics model imagines what happens next* (magenta = imagined, gray = actual).
+
+**1 · Swap the encoder, the state is constant.** The same pipeline run three ways —
+symbolic only, `+ DinoV2Embedder` (per-object `entity.vec`), `+ VJepa2Embedder`
+(scene-level `ws.scene`) — yields the *identical* WorldState schema; only which model
+filled the latent changes.
+
+**2 · A dynamics model imagines the future off that state.** A small transformer
+trained offline on recorded `WorldState` sequences predicts where each entity is headed.
+The honest ablation — does Retina's appearance latent actually help? — on **held-out**
+data with **real DINOv2** vecs (mean 7-step position error, px, lower is better):
+
+| dynamics input | 7-step error |
+|---|---|
+| constant-velocity baseline | 7.68 px |
+| learned, pos-only | 1.45 px |
+| **learned, pos + appearance latent** | **1.33 px** |
+
+The latent channel measurably improves prediction — **+83% over constant-velocity,
++8% over pos-only**, widening with the horizon. Full grid in
+[`BENCHMARK.md`](https://github.com/machinefi/trio-retina/blob/main/BENCHMARK.md).
+
+**3 · Front + back compose through one standard** — any encoder in front, any dynamics
+behind, meeting on one serializable state. See
+[`end_to_end.py`](https://github.com/machinefi/trio-retina/blob/main/examples/world_model/end_to_end.py).
+
 ## Where to go next
 
 - **[Event spec](spec.md)** — the tiny, JWT-style `retina.event` interchange format.
