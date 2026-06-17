@@ -3,8 +3,9 @@ emit_initial, the ZoneRule exit-grace window, and anchor (feet/head/center)."""
 
 import pytest
 
-from retina import CountRule, Track, Zone, ZoneRule
+from retina import CountRule, LineRule, Track, Zone, ZoneRule
 from retina.events import EventType
+from retina.zones import Line
 
 
 def _track(track_id, label="person", x=0, bbox=None):
@@ -183,3 +184,59 @@ def test_grace_reentry_within_window_no_new_enter():
     assert len(rule.update([_inside_trk()], 0.0, 0)) == 1  # enter
     assert rule.update([_outside_trk()], 1.0, 1) == []  # within grace
     assert rule.update([_inside_trk()], 2.0, 2) == []  # back inside, no new enter
+
+
+# --- LineRule: crossing + min_frames jitter debounce ------------------------
+
+# Vertical tripwire at x=50; a track at cx<50 is on one side, cx>50 the other.
+_WIRE = Line("wire", (50, 0), (50, 100))
+
+
+def _line_trk(cx, prev_cx, tid=1):
+    """A track whose centroid is at (cx, 50), having moved from (prev_cx, 50)."""
+    trk = _track(tid, bbox=(cx - 5, 45, cx + 5, 55))
+    trk.prev_centroid = (float(prev_cx), 50.0)
+    return trk
+
+
+def test_linerule_min_frames_invalid():
+    with pytest.raises(ValueError):
+        LineRule(_WIRE, min_frames=0)
+
+
+def test_linerule_default_emits_on_intersection():
+    rule = LineRule(_WIRE)  # min_frames=1 default: legacy behavior
+    out = rule.update([_line_trk(60, 40)], 1.0, 0)  # 40 -> 60 crosses x=50
+    assert [e.type for e in out] == [EventType.LINE_CROSS]
+    assert out[0].dir == "a_to_b"  # moved to the >0-side -> a_to_b per impl
+
+
+def test_linerule_default_no_cross_when_no_intersection():
+    rule = LineRule(_WIRE)
+    assert rule.update([_line_trk(45, 40)], 1.0, 0) == []  # 40 -> 45, no crossing
+
+
+def test_linerule_min_frames_confirms_after_hold():
+    rule = LineRule(_WIRE, min_frames=3)
+    # Frame 0: crosses 40 -> 60. Pending, not yet emitted.
+    assert rule.update([_line_trk(60, 40)], 0.0, 0) == []
+    # Frame 1: stays on the new side (60 -> 65), held=2, still pending.
+    assert rule.update([_line_trk(65, 60)], 1.0, 1) == []
+    # Frame 2: still on new side (65 -> 70), held=3 == min_frames -> confirm.
+    out = rule.update([_line_trk(70, 65)], 2.0, 2)
+    assert [e.type for e in out] == [EventType.LINE_CROSS]
+    assert out[0].dir == "a_to_b"
+    assert out[0].t == 2.0 and out[0].frame == 2  # emitted at confirm frame
+    # Frame 3: no further events.
+    assert rule.update([_line_trk(75, 70)], 3.0, 3) == []
+
+
+def test_linerule_min_frames_bounce_back_suppressed():
+    rule = LineRule(_WIRE, min_frames=3)
+    assert rule.update([_line_trk(60, 40)], 0.0, 0) == []  # cross, pending on >0 side
+    # Jitter: centroid drifts back to the original side without a confirmed hold
+    # (45 -> 40, no fresh intersection) -> pending discarded, nothing emitted.
+    assert rule.update([_line_trk(40, 45)], 1.0, 1) == []
+    # Staying on the original side keeps emitting nothing.
+    assert rule.update([_line_trk(35, 40)], 2.0, 2) == []
+    assert rule.update([_line_trk(30, 35)], 3.0, 3) == []

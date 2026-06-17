@@ -99,6 +99,7 @@ Retina imports no model — **any** `callable(image) -> [Detection]` plugs in (`
 - **YOLO family** — `YoloDetector("<weights>.pt")` (Ultralytics): YOLOv5/8/9/10/11/12, RT-DETR. Open-vocab via YOLO-World.
 - **Open-vocab from text** — `GroundingDinoDetector(["forklift", "hard hat"])`, no training.
 - **Any VLM** — `VlmDetector(client, prompt)` (Qwen-VL / Gemini / GPT-4o / Claude / local), as a detector or an event-source enricher.
+- **Supervision interop** — `Detection.from_supervision(sv_detections)` ingests a Roboflow `sv.Detections`, so anything that already converts to Supervision pipes straight into Retina's event layer.
 
 Trackers are pluggable too: `IoUTracker` (pure-Python default) or `NorfairTracker`.
 

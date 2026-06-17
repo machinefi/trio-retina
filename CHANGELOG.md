@@ -6,6 +6,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `Detection.from_supervision(detections, class_names=None)`: ingest a Roboflow
+  Supervision `sv.Detections` into `list[Detection]` by duck-typing (no
+  `supervision` import), so Supervision users plug straight into Retina's event
+  layer. Labels resolve from `data["class_name"]`, then a `class_names` mapping,
+  then `str(class_id)`; missing `confidence` / `class_id` are handled.
+- `LineRule(min_frames=...)`: a crossing is confirmed only after the track stays
+  on the new side for `min_frames` frames (default 1 = unchanged instant-emit),
+  suppressing single-frame jitter near the tripwire — mirrors Supervision's
+  `LineZone.minimum_crossing_threshold`.
+
 ## [0.1.0] — 2026-06-17
 
 First public open-source release.

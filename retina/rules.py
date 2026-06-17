@@ -178,7 +178,21 @@ class ZoneRule(_RuleBase):
 
 class LineRule(_RuleBase):
     """`line.cross` when a track's centroid crosses the tripwire. `dir` is
-    `a_to_b` or `b_to_a` by which side it moved toward."""
+    `a_to_b` or `b_to_a` by which side it moved toward.
+
+    Requires *tracked* input (each track carries an id and `prev_centroid`), per
+    the standard — `line.cross` is meaningless without object identity.
+
+    `min_frames` (default 1) is a jitter debounce, like Supervision's
+    `LineZone.minimum_crossing_threshold`. With `min_frames=1` the rule is
+    stateless and emits the instant the prev→curr centroid segment intersects
+    the line (the original behavior). With `min_frames > 1`, a crossing is
+    *pending* once the segment intersects, and is **confirmed and emitted only
+    after** the track has stayed continuously on the new side for `min_frames`
+    frames (including the crossing frame). If the track returns to the original
+    side before then, the crossing is discarded as jitter and nothing is
+    emitted. The event fires on the frame the crossing is confirmed, carrying
+    the direction of the original crossing (and that frame's `t` / `box`)."""
 
     def __init__(
         self,
@@ -186,12 +200,19 @@ class LineRule(_RuleBase):
         *,
         src: str | None = None,
         classes: set[str] | None = None,
+        min_frames: int = 1,
         frame_size: tuple[int, int] | None = None,
     ):
+        if min_frames < 1:
+            raise ValueError(f"min_frames must be >= 1, got {min_frames}")
         self._line = line
         self._src = src
         self._classes = classes
+        self._min_frames = min_frames
         self._frame_size = frame_size
+        # track_id -> [direction, side, frames_held]: an unconfirmed crossing,
+        # the side (sign) the track must stay on, and how many frames it has.
+        self._pending: dict[int, list] = {}
 
     def update(self, tracks: list[Track], t: float, frame_idx: int) -> list[Event]:
         events: list[Event] = []
@@ -199,23 +220,46 @@ class LineRule(_RuleBase):
         for trk in tracks:
             if not _match_class(trk.label, self._classes) or trk.prev_centroid is None:
                 continue
-            if segments_intersect(trk.prev_centroid, trk.centroid, a, b):
-                direction = "a_to_b" if side_of_line(trk.centroid, a, b) < 0 else "b_to_a"
-                events.append(
-                    Event(
-                        type=EventType.LINE_CROSS,
-                        t=t,
-                        src=self._src,
-                        id=trk.track_id,
-                        label=trk.label,
-                        zone=self._line.line_id,
-                        dir=direction,
-                        conf=round(trk.confidence, 3),
-                        box=trk.bbox,
-                        frame=frame_idx,
-                    )
-                )
+            crossed = segments_intersect(trk.prev_centroid, trk.centroid, a, b)
+            direction = "a_to_b" if side_of_line(trk.centroid, a, b) < 0 else "b_to_a"
+
+            if self._min_frames == 1:
+                if crossed:
+                    events.append(self._ev(trk, t, frame_idx, direction))
+                continue
+
+            side = side_of_line(trk.centroid, a, b)
+            pending = self._pending.get(trk.track_id)
+            if crossed:
+                # A fresh crossing (re-)arms the pending confirmation on the new
+                # side; this frame counts as the first frame held.
+                self._pending[trk.track_id] = [direction, side, 1]
+            elif pending is not None:
+                pend_dir, pend_side, held = pending
+                if (side > 0) == (pend_side > 0):
+                    held += 1
+                    pending[2] = held
+                    if held >= self._min_frames:
+                        del self._pending[trk.track_id]
+                        events.append(self._ev(trk, t, frame_idx, pend_dir))
+                else:
+                    # Bounced back to the original side before confirmation.
+                    del self._pending[trk.track_id]
         return events
+
+    def _ev(self, trk: Track, t: float, frame_idx: int, direction: str) -> Event:
+        return Event(
+            type=EventType.LINE_CROSS,
+            t=t,
+            src=self._src,
+            id=trk.track_id,
+            label=trk.label,
+            zone=self._line.line_id,
+            dir=direction,
+            conf=round(trk.confidence, 3),
+            box=trk.bbox,
+            frame=frame_idx,
+        )
 
 
 class CountRule(_RuleBase):

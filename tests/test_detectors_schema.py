@@ -1,5 +1,7 @@
 """Tests for the VLM detector seam, the Norfair adapter, and event validation."""
 
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 
@@ -57,6 +59,71 @@ def test_vlm_detector_maps_client_boxes():
 def test_vlm_detector_handles_empty_response():
     det = VlmDetector(lambda image, prompt: None, "x")
     assert det(np.zeros((10, 10, 3), np.uint8)) == []
+
+
+# --- Detection.from_supervision: ingest a Roboflow sv.Detections (duck-typed) ---
+
+
+def _sv(xyxy, confidence=None, class_id=None, data=None):
+    """A tiny stub mimicking sv.Detections (we never import supervision)."""
+    return SimpleNamespace(
+        xyxy=np.array(xyxy, dtype=float) if len(xyxy) else np.zeros((0, 4)),
+        confidence=None if confidence is None else np.array(confidence, dtype=float),
+        class_id=None if class_id is None else np.array(class_id),
+        data=data or {},
+    )
+
+
+def test_from_supervision_basic_conversion():
+    sv = _sv(
+        [[10, 10, 50, 50], [0, 0, 5, 5]],
+        confidence=[0.8, 0.2],
+        class_id=[0, 1],
+    )
+    out = Detection.from_supervision(sv, class_names=["person", "car"])
+    assert len(out) == 2
+    assert out[0].label == "person" and out[0].confidence == 0.8
+    assert out[0].bbox == (10.0, 10.0, 50.0, 50.0)
+    assert out[1].label == "car" and out[1].confidence == 0.2
+
+
+def test_from_supervision_class_name_from_data():
+    sv = _sv(
+        [[1, 2, 3, 4]],
+        confidence=[0.9],
+        class_id=[7],
+        data={"class_name": np.array(["forklift"])},
+    )
+    out = Detection.from_supervision(sv)  # data label wins over class_id/mapping
+    assert len(out) == 1 and out[0].label == "forklift"
+
+
+def test_from_supervision_class_id_dict_mapping():
+    sv = _sv([[1, 2, 3, 4]], confidence=[0.5], class_id=[3])
+    out = Detection.from_supervision(sv, class_names={3: "dog"})
+    assert out[0].label == "dog"
+
+
+def test_from_supervision_confidence_none_uses_default():
+    sv = _sv([[1, 2, 3, 4]], confidence=None, class_id=[0])
+    out = Detection.from_supervision(sv, class_names=["person"])
+    assert out[0].confidence == 1.0  # Detection's default
+
+
+def test_from_supervision_class_id_none_falls_back():
+    sv = _sv([[1, 2, 3, 4]], confidence=[0.4], class_id=None)
+    out = Detection.from_supervision(sv)
+    assert out[0].label == ""  # no class_name, no class_id
+
+
+def test_from_supervision_class_id_no_mapping_uses_str():
+    sv = _sv([[1, 2, 3, 4]], confidence=[0.4], class_id=[5])
+    out = Detection.from_supervision(sv)  # no names provided
+    assert out[0].label == "5"
+
+
+def test_from_supervision_empty():
+    assert Detection.from_supervision(_sv([])) == []
 
 
 # --- schema / validation ---
