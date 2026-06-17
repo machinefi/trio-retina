@@ -93,7 +93,7 @@ Retina is the **encoder** (`s = Enc(x)`) of a world model. The whole front-to-ba
 seam is demonstrable end to end — on a synthetic scene, as a small, honest proof of
 concept ([`examples/world_model/`](https://github.com/machinefi/trio-retina/tree/main/examples/world_model)):
 
-![The world-model stack: any perception model feeds Trio Retina's one standard WorldState, which any dynamics / world model builds on](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png)
+![The world-model stack: perception backbones (YOLO, DINOv2, V-JEPA 2, SAM, VLMs) feed Trio Retina — the encoder and standardized WorldState — which world models for dynamics and control build on](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png)
 
 *Any perception model on top, any dynamics model underneath, meeting on one standard `WorldState` — Retina is the constant in the middle.*
 

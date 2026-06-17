@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --ink:#0f1419;
+    --ink-2:#3d4754;
+    --muted:#8a94a3;
+    --hair:#e6e8eb;
+    --bg-1:#fcfdfe;
+    --bg-2:#f4f6f9;
+    --mag:#e0218a;
+    --mag-deep:#bd1370;
+    --mag-tint:#fdf0f7;
+    --mono:#5b6675;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:-apple-system,"Inter","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  .canvas{
+    width:1100px;height:712px;
+    background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    padding:52px 90px 46px;
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+  .eyebrow{
+    text-align:center;
+    font-size:13px;font-weight:700;letter-spacing:.32em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:38px;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--hair);
+    border-radius:18px;
+    box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.05);
+    padding:30px 34px;
+    text-align:center;
+  }
+  .tier-label{
+    font-size:11.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+  .tier-label .sub{color:#b3bcc8;font-weight:600;}
+
+  .chips{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-bottom:13px;}
+  .chip{
+    font-size:16px;font-weight:600;color:var(--ink);
+    background:#f7f9fb;border:1px solid var(--hair);
+    border-radius:9px;padding:7px 14px;
+    letter-spacing:.005em;
+  }
+  .secondary{
+    font-size:14px;color:var(--muted);
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;}
+  .secondary .mono{color:var(--mono);font-size:13px;}
+
+  /* hero */
+  .hero{
+    background:linear-gradient(180deg,#fef6fb 0%,var(--mag-tint) 100%);
+    border:1.5px solid #f3b6d6;
+    box-shadow:0 1px 2px rgba(224,33,138,.08),0 14px 34px rgba(224,33,138,.13);
+    padding:28px 34px 30px;
+  }
+  .hero-label{
+    font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--mag);margin-bottom:8px;
+  }
+  .hero-title{
+    font-size:40px;font-weight:800;letter-spacing:-.015em;color:var(--mag-deep);
+    margin-bottom:6px;line-height:1;
+  }
+  .hero-sub{font-size:15.5px;color:var(--ink-2);font-weight:600;margin-bottom:13px;letter-spacing:.005em;}
+  .hero-state{
+    font-size:16px;color:var(--ink);margin-bottom:10px;
+  }
+  .hero-state b{font-weight:700;}
+  .hero-enc{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:13.5px;color:var(--mag-deep);
+    background:#fff;border:1px solid #f3c4dd;border-radius:7px;
+    padding:3px 10px;position:relative;top:-1px;
+  }
+  .hero-foot{font-size:13px;color:var(--muted);font-style:normal;}
+
+  /* connector */
+  .flow{
+    display:flex;flex-direction:column;align-items:center;
+    position:relative;
+  }
+  .flow-label{
+    font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;
+    background:linear-gradient(180deg,#fafbfd,#f6f8fb);
+    padding:2px 12px;border-radius:20px;border:1px solid #edf0f3;
+    margin:0;position:absolute;top:50%;transform:translateY(-50%);
+    white-space:nowrap;
+  }
+  .flow-line{
+    width:1.5px;height:52px;
+    background:linear-gradient(180deg,#d4d9e0,#c2cad4);
+  }
+  .arrow{
+    width:0;height:0;
+    border-left:4.5px solid transparent;border-right:4.5px solid transparent;
+    border-top:6px solid #c2cad4;margin-top:-1px;
+  }
+
+  .tagline{
+    text-align:center;font-size:14px;color:var(--muted);font-style:italic;
+    margin-top:38px;
+  }
+  .tagline b{font-style:normal;font-weight:600;color:var(--ink-2);}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="eyebrow">The World-Model Stack</div>
+
+  <!-- TOP -->
+  <div class="card">
+    <div class="tier-label">Perception Backbones <span class="sub">· pixels → features &amp; detections</span></div>
+    <div class="chips">
+      <span class="chip">YOLO</span>
+      <span class="chip">DINOv2</span>
+      <span class="chip">V-JEPA 2</span>
+      <span class="chip">SAM</span>
+      <span class="chip">VLMs</span>
+    </div>
+    <div class="secondary">any <span class="mono">callable(image) → [Detection]</span></div>
+  </div>
+
+  <div class="flow">
+    <span class="flow-label">detections + embeddings</span>
+    <div class="flow-line"></div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- HERO -->
+  <div class="card hero">
+    <div class="hero-label">The Encoder &amp; Standardized State</div>
+    <div class="hero-title">Trio Retina</div>
+    <div class="hero-state">one model-agnostic <b>WorldState</b> — symbolic events + latent state &nbsp;<span class="hero-enc">s = Enc(o)</span></div>
+    <div class="hero-foot">the invariant interface between perception and dynamics</div>
+  </div>
+
+  <div class="flow">
+    <span class="flow-label">one standardized state stream</span>
+    <div class="flow-line"></div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="card">
+    <div class="tier-label">World Models <span class="sub">· dynamics &amp; control · state → prediction → action</span></div>
+    <div class="chips">
+      <span class="chip">latent dynamics models</span>
+      <span class="chip mono">p(sₜ₊₁ | sₜ, a)</span>
+      <span class="chip">forecasting</span>
+    </div>
+    <div class="secondary">model-based RL &amp; planning · latent rollouts · policy · agents / digital twins</div>
+  </div>
+
+  <div class="tagline">Swap any encoder above or any dynamics model below — <b>Retina is the invariant state in the middle.</b></div>
+</div>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 # Trio Retina
 
-<img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png" width="840" alt="The world-model stack: any perception model — YOLO, DINOv2, V-JEPA 2 — feeds Trio Retina's one standard WorldState, which any dynamics / world model builds on top of">
+<img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png" width="840" alt="The world-model stack: perception backbones (YOLO, DINOv2, V-JEPA 2, SAM, VLMs) feed Trio Retina — the encoder and standardized WorldState — which world models for dynamics and control build on top of">
 
 **The state layer of the world-model stack** — bring any perception model on top, get one standard, model-agnostic `WorldState`, build any dynamics underneath. Swap the model or the dynamics; **Retina is the constant in the middle.**
 
@@ -333,7 +333,7 @@ Full rationale, references, and the world-model stack: [`DESIGN.md`](DESIGN.md).
 
 Early but real (`v0.2.1`). Stable: the event layer + JSON Schema/validator, the composable pipeline (`|` / list / JSON), YOLO + open-vocab + VLM detectors (plus `from_supervision` interop), IoU + Norfair trackers, and jitter-robust rules (`exit_grace_s` · `anchor` · `min_frames`).
 
-Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · **more encoders** behind the latent channel · **RL / imagination-training** on the learned state (Dreamer-style) · growing the [front/back-end benchmark](BENCHMARK.md). See [`CHANGELOG.md`](CHANGELOG.md).
+Next: ByteTrack / OC-SORT · `proximity` / `anomaly` events · VLM-as-event-source · Kafka / MQTT sinks · **more encoders** behind the latent channel · **model-based RL / latent-rollout imagination** on the learned state · growing the [front/back-end benchmark](BENCHMARK.md). See [`CHANGELOG.md`](CHANGELOG.md).
 
 Retina is the open **perception encoder** extracted from [Trio](https://machinefi.com); the layers above (dynamics, policy / judgment) are Trio's commercial platform. Retina is, and stays, model-agnostic and free.
 
