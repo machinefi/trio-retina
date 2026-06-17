@@ -13,9 +13,9 @@ The model-agnostic state layer for world models.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
-![Trio Retina world model: any detector becomes one standard WorldState, then a learned dynamics model imagines each entity's future trajectory](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_hero.gif)
+![The world-model stack: any perception model (YOLO, DINOv2, V-JEPA 2) feeds into Trio Retina's one standard WorldState, which any dynamics / world model builds on top of](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/stack.png)
 
-> **Turn any detector into one standard world-state — then a learned dynamics model imagines what happens next.** From the *same* model-agnostic `WorldState`, a small transformer rolls out each entity's future (magenta = the learned model's imagination, gray = the actual future as it unfolds). The curving object diverges honestly — its type, and so its future, is legible only from the appearance latent. → [the world-model stack](#-the-world-model-stack)
+> **The state layer of the world-model stack.** Bring any perception model on top (YOLO · DINOv2 · V-JEPA 2 · a VLM); Retina turns its output into *one* standard, model-agnostic `WorldState` — symbolic events + a latent `vec`. Any dynamics model underneath (forecasting · Dreamer-style imagination · policy · digital twins) builds on that. Swap the model above or the dynamics below — **Retina is the constant in the middle.** → [see it end to end](#-the-world-model-stack)
 
 ## 👋 hello
 
@@ -185,8 +185,6 @@ validate(event)   # -> [] if valid, else a list of problems  (pure-Python, ships
 Retina is the **encoder** (`s = Enc(x)`) in a world model. With the latent
 producers shipped, the whole front-to-back seam is now demonstrable end to end —
 on a synthetic scene, as a small but honest proof of concept ([`examples/world_model/`](examples/world_model/)):
-
-![The model-agnostic world-model seam: any encoder (YOLO · DINOv2 · V-JEPA2) → one standard Retina WorldState → any dynamics model](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_seam.png)
 
 **1 · swap the encoder, the state is constant.** The same pipeline, run three
 ways — symbolic-only, `+ DinoV2Embedder` (per-object `entity.vec`), and
