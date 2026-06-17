@@ -23,6 +23,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `examples/world_model/multi_encoder.py`: "swap the encoder, the state schema
   is constant" demo — the same pipeline run symbolic-only, with `DinoV2Embedder`
   (per-object `entity.vec`), and with `VJepa2Embedder` (scene-level `ws.scene`).
+- `examples/world_model/{dataset,dynamics_model,dynamics}.py`: a Dreamer-4-style
+  latent-dynamics back-end — a small transformer world model trained offline on
+  recorded `WorldState` sequences, with autoregressive imagination rollouts. The
+  honest appearance ablation (held-out, real DINOv2 vecs) shows the latent
+  channel improves multi-step motion prediction: pos+appearance < pos-only <
+  constant-velocity. Torch lives only in the examples (numpy-only core); install
+  via the new `[dynamics]` extra. Numpy-only smoke test in
+  `tests/test_world_model.py`.
 
 ## [0.2.1] — 2026-06-17
 

@@ -10,3 +10,6 @@ site/
 *.pt
 events.jsonl
 uv.lock
+# Generated (deterministic) world-model dataset — regenerate with
+# `python examples/world_model/dataset.py` (real DINOv2 vecs via the [dino] extra).
+examples/world_model/data/
