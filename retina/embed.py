@@ -288,8 +288,13 @@ class VJepa2Embedder(Pipeable):
 
         torch = self._torch
         pil = [Image.fromarray(f.astype("uint8")) for f in clip]
-        # AutoVideoProcessor takes a list-of-frames clip and tensors it (T,C,H,W).
-        inputs = self._processor(pil, return_tensors="pt").to(self.device)
+        # V-JEPA 2's AutoVideoProcessor expects a *video* = a list of frames.
+        # Some versions want a batch of videos (list-of-lists); try the plain
+        # clip first, fall back to wrapping it as a one-video batch.
+        try:
+            inputs = self._processor(pil, return_tensors="pt").to(self.device)
+        except (ValueError, TypeError):  # pragma: no cover - version-dependent
+            inputs = self._processor([pil], return_tensors="pt").to(self.device)
         with torch.no_grad():
             out = self._model(**inputs)
         feats = getattr(out, "last_hidden_state", None)
