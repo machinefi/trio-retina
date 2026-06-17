@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "trio-retina"
-version = "0.2.0"
+version = "0.2.1"
 description = "Model-agnostic computer-vision pipeline: turn any detector (YOLO, VLM, Grounding DINO) into structured tracking events — zone intrusion, line-crossing, dwell, counting — over video or RTSP. The state layer for world models."
 readme = "README.md"
 requires-python = ">=3.10"

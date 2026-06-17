@@ -6,6 +6,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-06-17
+
 ### Added
 
 - `examples/bench_overhead.py`: honest numpy-only micro-benchmark of the Retina-layer
@@ -151,7 +153,8 @@ First public open-source release.
   (`JsonlSink`, `WebhookSink`).
 - `event_f1` / `match_events`: a generic metric to compare two event streams.
 
-[Unreleased]: https://github.com/machinefi/trio-retina/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/machinefi/trio-retina/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/machinefi/trio-retina/releases/tag/v0.2.1
 [0.2.0]: https://github.com/machinefi/trio-retina/releases/tag/v0.2.0
 [0.1.0]: https://github.com/machinefi/trio-retina/releases/tag/v0.1.0
 [0.0.4]: https://github.com/machinefi/trio-retina
