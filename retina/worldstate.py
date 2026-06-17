@@ -127,9 +127,10 @@ class WorldState:
 
         Maps the symbolic core (id/type/bbox/conf) straight off the track; if a
         per-object latent was attached upstream (in `track.user["vec"]` as a
-        dict), it rides along as the entity's `vec`. Relations and scene default
-        empty — they're filled by higher stages (a relation extractor, a frozen
-        V-JEPA scene encoder)."""
+        dict), it rides along as the entity's `vec`. A scene-level latent (e.g. a
+        frozen V-JEPA scene encoder) attaches symmetrically: if
+        `frame.user["scene"]` is a dict, it lifts onto `ws.scene`. Relations
+        default empty — filled by a higher stage (a relation extractor)."""
         entities: list[Entity] = []
         for trk in frame.tracks:
             raw = trk.user.get("vec") if isinstance(trk.user, dict) else None
@@ -143,4 +144,13 @@ class WorldState:
                     vec=vec,
                 )
             )
-        return cls(src=frame.src, t=frame.t, frame=frame.frame_num, entities=entities)
+        fuser = frame.user if isinstance(getattr(frame, "user", None), dict) else {}
+        raw_scene = fuser.get("scene")
+        scene = Vec(**raw_scene) if isinstance(raw_scene, dict) else None
+        return cls(
+            src=frame.src,
+            t=frame.t,
+            frame=frame.frame_num,
+            entities=entities,
+            scene=scene,
+        )

@@ -14,6 +14,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   embedding flowing into `WorldState`/`entity.vec`. Lazy torch import (numpy-only
   core); install via `pip install 'trio-retina[dino]'`. See
   `examples/dino_embeddings.py`.
+- `retina.embed.VJepa2Embedder`: the first real producer for the scene latent —
+  a frozen V-JEPA 2 *video* encoder that pools a rolling `clip_len`-frame clip
+  into one `frame.user["scene"]` → `ws.scene`. Lazy torch import (numpy-only
+  core); install via `pip install 'trio-retina[vjepa]'`.
+- `WorldState.from_frame` now lifts a scene latent from `frame.user["scene"]`
+  (a `{model,dim,…}` dict) onto `ws.scene` — symmetric with the per-track `vec`.
+- `examples/world_model/multi_encoder.py`: "swap the encoder, the state schema
+  is constant" demo — the same pipeline run symbolic-only, with `DinoV2Embedder`
+  (per-object `entity.vec`), and with `VJepa2Embedder` (scene-level `ws.scene`).
 
 ## [0.2.1] — 2026-06-17
 

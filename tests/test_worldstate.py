@@ -111,3 +111,27 @@ def test_from_frame_builds_entities_from_tracks():
     d = ws.to_dict()
     assert d["entities"][1]["vec"]["values"] == [0.3, 0.4]
     assert "relations" not in d and "scene" not in d
+
+
+def test_from_frame_lifts_scene_latent_from_frame_user():
+    # A scene-level latent in frame.user["scene"] (as a dict) lifts onto
+    # ws.scene — symmetric with how per-track vec lifts onto entity.vec.
+    frame = Frame(
+        frame_num=5,
+        src="cam_03",
+        t=12.0,
+        tracks=[_track(1, "person", (0.0, 0.0, 10.0, 20.0))],
+        user={"scene": {"model": "vjepa2:vitl", "dim": 1024, "values": [0.5, 0.6, 0.7]}},
+    )
+    ws = WorldState.from_frame(frame)
+
+    assert isinstance(ws.scene, Vec)
+    assert ws.scene.model == "vjepa2:vitl" and ws.scene.dim == 1024
+    assert ws.scene.values == [0.5, 0.6, 0.7]
+    # and it round-trips through the omit-empty serializer
+    assert ws.to_dict()["scene"]["values"] == [0.5, 0.6, 0.7]
+
+
+def test_from_frame_without_scene_leaves_scene_none():
+    frame = Frame(frame_num=1, src="c", t=0.0, tracks=[])
+    assert WorldState.from_frame(frame).scene is None
