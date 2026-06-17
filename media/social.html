@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  :root{
+    --ink:#0f1419; --ink-2:#3d4754; --muted:#8a94a3; --hair:#e6e8eb;
+    --ind:#4f46e5; --ind-deep:#4338ca; --ind-tint:#eef2ff; --mono:#5b6675;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:-apple-system,"Inter","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .card{
+    width:1280px;height:640px;
+    background:linear-gradient(180deg,#fcfdfe 0%,#f4f6f9 100%);
+    display:flex;align-items:center;padding:0 84px;gap:64px;position:relative;
+  }
+  .left{flex:1.15}
+  .eyebrow{font-size:15px;font-weight:700;letter-spacing:.26em;color:var(--muted);text-transform:uppercase;margin-bottom:20px}
+  h1{font-size:78px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1}
+  h1 .r{color:var(--ind)}
+  .tag{font-size:27px;font-weight:600;color:var(--ink-2);margin-top:22px;line-height:1.32}
+  .flow{font-size:18px;color:var(--muted);margin-top:20px}
+  .flow b{color:var(--ind-deep);font-weight:700}
+  .chips{margin-top:30px;display:flex;gap:10px}
+  .chip{font-size:15px;font-weight:600;color:var(--ink-2);background:#fff;border:1px solid var(--hair);border-radius:999px;padding:7px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .foot{position:absolute;left:84px;bottom:40px;font-size:16px;color:var(--muted)}
+  .foot code{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--ind-deep)}
+
+  /* right: 3-tier stack glyph */
+  .stack{width:380px;display:flex;flex-direction:column;align-items:stretch;gap:16px}
+  .tier{border-radius:16px;padding:20px 22px;text-align:center;background:#fff;border:1px solid var(--hair);box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.05)}
+  .tier .t-lab{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .tier .t-main{font-size:18px;font-weight:700;color:var(--ink);margin-top:6px}
+  .tier.mid{background:linear-gradient(180deg,#f5f7ff,#eef2ff);border:1.5px solid #c7d2fe;box-shadow:0 1px 2px rgba(79,70,229,.08),0 14px 30px rgba(79,70,229,.14)}
+  .tier.mid .t-lab{color:var(--ind)}
+  .tier.mid .t-main{font-size:24px;font-weight:800;color:var(--ind-deep)}
+  .arr{height:14px;display:flex;align-items:center;justify-content:center;color:#c2cad4;font-size:14px}
+</style></head>
+<body>
+  <div class="card">
+    <div class="left">
+      <div class="eyebrow">The world-model stack</div>
+      <h1>Trio&nbsp;<span class="r">Retina</span></h1>
+      <div class="tag">The model-agnostic <b style="color:#3d4754">state layer</b> for world models.</div>
+      <div class="flow">any perception model&nbsp; → &nbsp;<b>one standard WorldState</b>&nbsp; → &nbsp;any dynamics model</div>
+      <div class="chips">
+        <span class="chip">encoder · s = Enc(o)</span>
+        <span class="chip">symbolic + latent state</span>
+        <span class="chip">numpy-only core</span>
+      </div>
+      <div class="foot"><code>pip install trio-retina</code>&nbsp;&nbsp;·&nbsp;&nbsp;Apache-2.0</div>
+    </div>
+    <div class="stack">
+      <div class="tier"><div class="t-lab">Perception</div><div class="t-main">YOLO · DINOv2 · V-JEPA 2</div></div>
+      <div class="arr">↓</div>
+      <div class="tier mid"><div class="t-lab">The encoder &amp; state</div><div class="t-main">Trio Retina</div></div>
+      <div class="arr">↓</div>
+      <div class="tier"><div class="t-lab">World models</div><div class="t-main">dynamics · control</div></div>
+    </div>
+  </div>
+</body></html>
