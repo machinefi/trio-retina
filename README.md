@@ -208,7 +208,7 @@ error (px, lower is better):
 that's where local velocity runs out and object *type* (legible only from
 appearance) decides the future. → [`dynamics.py`](examples/world_model/dynamics.py), full grid in [`BENCHMARK.md`](BENCHMARK.md)
 
-![Left: raw broadcast soccer clip. Middle: a WorldState arrow. Right: a top-down tactical radar where each player is a team-coloured dot with a brand-indigo predicted next run and a faint gray past trail.](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_soccer.gif)
+<p align="center"><img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_soccer.gif" width="840" alt="Left: raw broadcast soccer clip. Middle: a WorldState arrow. Right: a top-down tactical radar where each player is a team-coloured dot with a brand-indigo predicted next run and a faint gray past trail."></p>
 
 > **Raw video → one standardized Retina `WorldState` → predicted player runs.** Left is a real broadcast clip (Roboflow's MIT-licensed [`sports`](https://github.com/roboflow/sports) sample, originally DFL Bundesliga). It goes through a real YOLO detector + tracker and a frozen DINOv2-small appearance encoder, and comes out as one model-agnostic `WorldState`; the right panel renders that state as a **top-down tactical radar**, and the small dynamics transformer — trained offline on those sequences — draws each player's **predicted next run** ahead in brand indigo (faint gray = where they came from). Teams are coloured by clustering the players' DINOv2 appearance vectors into two groups — the latent knows who's who. The radar is a stylized perspective top-down (no Roboflow pitch-keypoint weights on this host, so a fixed homography from the clip's pitch landmarks, not per-frame). Honest by design: player motion is stochastic, so at this short horizon the learned model roughly *ties* a constant-velocity baseline on held-out error — the appearance latent's *measurable* win lives in the cleaner synthetic ablation above, not on free-running humans. Real pipeline, end to end — [`examples/world_model/soccer/`](examples/world_model/soccer/). The synthetic car rollout (held-out, where the latent earns its keep) lives in [`make_demo_gif.py`](examples/world_model/make_demo_gif.py) · [`media/rollout.png`](examples/world_model/media/rollout.png).
 
@@ -229,19 +229,30 @@ python examples/world_model/end_to_end.py   # encoder → WorldState → dynamic
 
 ## 🎬 demos
 
-### Forecast — the dynamics layer on top of Retina
+Two more ways Retina's state feeds the next layer — same standard, different consumers:
 
-![Trio Retina: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state — gray constant-velocity baseline vs magenta learned model](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif)
+<table>
+<tr>
+<td width="50%" valign="top">
 
-> One world-state from any detector → **two dynamics models forecast where each entity is headed** off the *same* state (gray = constant-velocity baseline, magenta = a learned model).
+**Forecast — the dynamics layer on Retina**
 
-[`examples/forecast/`](examples/forecast/) runs a dynamics model on Retina's `WorldState` stream and shows *why* Retina is necessary: a dynamics model eats structured **state**, not pixels.
+<img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/media/retina_demo.gif" width="100%" alt="Trio Retina: YOLO object tracking with two dynamics models forecasting entity trajectories from one world-state — gray constant-velocity baseline vs magenta learned model">
 
-### iTwin.js — a live, predictive layer for a digital twin
+One world-state → **two dynamics models forecast** where each entity is headed off the *same* state (gray = constant-velocity, magenta = learned). A dynamics model eats structured **state**, not pixels. → [`examples/forecast/`](examples/forecast/)
 
-![Trio Retina perception events and forecast arrows rendered live on a Bentley iTwin.js digital twin (Baytown plant)](https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/itwin/media/retina_itwin_demo.gif)
+</td>
+<td width="50%" valign="top">
 
-[`examples/itwin/`](examples/itwin/) drops Retina's entities, forecast arrows, and `retina.event` alerts onto a real Bentley **iTwin.js** iModel (the Baytown sample plant), through one neutral JSON contract — rendered fully headless. Retina doesn't replace the twin; it gives it *live eyes*.
+**iTwin.js — a live, predictive digital twin**
+
+<img src="https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/itwin/media/retina_itwin_demo.gif" width="100%" alt="Trio Retina perception events and forecast arrows rendered live on a Bentley iTwin.js digital twin (Baytown plant)">
+
+Retina's entities, forecast arrows, and `retina.event` alerts on a real Bentley **iTwin.js** iModel (Baytown), one neutral JSON contract, fully headless — it gives the twin *live eyes*. → [`examples/itwin/`](examples/itwin/)
+
+</td>
+</tr>
+</table>
 
 <details>
 <summary>All examples</summary>
