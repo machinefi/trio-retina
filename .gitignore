@@ -13,3 +13,7 @@ uv.lock
 # Generated (deterministic) world-model dataset — regenerate with
 # `python examples/world_model/dataset.py` (real DINOv2 vecs via the [dino] extra).
 examples/world_model/data/
+# Recorded soccer WorldStates + sampled broadcast frames — regenerate from the
+# Roboflow `sports` sample clip with `examples/world_model/soccer/record.py`.
+# Not committed: large, and the frames are derived from third-party footage.
+examples/world_model/soccer/data/

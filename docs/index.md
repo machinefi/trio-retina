@@ -117,9 +117,9 @@ The latent channel measurably improves prediction — **+83% over constant-veloc
 +8% over pos-only**, widening with the horizon. Full grid in
 [`BENCHMARK.md`](https://github.com/machinefi/trio-retina/blob/main/BENCHMARK.md).
 
-![Top-down demo — each tracked car's next move is predicted (indigo arrow) off one Retina WorldState, with the actual path in gray for honest comparison](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_demo.gif)
+![Real match footage → Retina WorldState → a learned dynamics model predicts each player's next run (indigo), with the actual run in gray for honest comparison](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_soccer.gif)
 
-*See it work: each tracked object is a car drawn from Retina's WorldState; the indigo arrow is the real trained model's predicted next move (rolled out from that one state), gray is the actual path. The straight car is nailed; the curving car shows the honest divergence where the appearance latent earns its keep.*
+*Real match footage → Retina WorldState → a learned dynamics model predicts each player's next run. A short broadcast clip (Roboflow's MIT-licensed `sports` sample, originally DFL Bundesliga) runs through a real YOLO detector + tracker, a frozen DINOv2-small appearance encoder, and out as standardized `WorldState`s; the dynamics transformer predicts each player's next ~0.7s (indigo), with the actual run in gray. Honest by design — player motion is stochastic, so the learned model only ties constant-velocity on held-out next-step error (7.76 vs 7.79 px); the appearance latent's win shows on the cleaner synthetic ablation above. Real pipeline end to end.*
 
 **3 · Front + back compose through one standard** — any encoder in front, any dynamics
 behind, meeting on one serializable state. See

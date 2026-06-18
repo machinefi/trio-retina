@@ -8,6 +8,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Flagship world-model demo on **real soccer footage**: a short broadcast clip
+  (Roboflow's MIT-licensed `sports` sample, originally DFL Bundesliga) runs
+  through a real YOLO detector + IoU tracker, a frozen DINOv2-small appearance
+  encoder, and out as standardized Retina `WorldState`s; a small multi-player
+  dynamics transformer trains offline on those sequences and predicts each
+  tracked player's next run, overlaid on the real frames (indigo = prediction,
+  gray = actual). Honest by design — held-out next-step error ties
+  constant-velocity (7.76 vs 7.79 px), since player motion is stochastic.
+  Pipeline + renderer: `examples/world_model/soccer/`; visual:
+  `media/world_model_soccer.gif`.
 - World-model demo visual: `media/world_model_demo.gif`, a recognizable top-down
   scene where each tracked object is a labeled car and the real trained dynamics
   model's predicted next move is drawn ahead (indigo) against the actual path
@@ -50,6 +60,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The world-model section in `README.md` and `docs/index.md` now leads with the
+  real soccer demo (`media/world_model_soccer.gif`) instead of the synthetic car
+  rollout; the car ablation table and `media/world_model_demo.gif` are retained
+  as the cleaner held-out benchmark.
 - Replaced the abstract world-model hero GIF with a recognizable top-down car
   demo (`media/world_model_demo.gif`); retired `media/world_model_hero.gif` and
   `examples/world_model/make_hero_gif.py`.
