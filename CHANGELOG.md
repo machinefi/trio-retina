@@ -6,7 +6,36 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `WorldState.from_frame` no longer crashes on a `vec`/`scene` dict carrying an
+  unexpected key (a future/foreign producer): only the known fields
+  (`model/dim/dtype/ref/values`) are used, and a dict missing `model`/`dim`
+  degrades to `vec=None` / `scene=None` instead of raising.
+- `LineRule` (`min_frames>1`): pending unconfirmed crossings for tracks that
+  vanish are now swept each frame (no state leak), and a re-crossing in the
+  opposite direction is treated as a bounce and discarded rather than re-armed.
+  `min_frames=1` behavior is unchanged.
+- `LineRule` no longer reports a fixed `b_to_a` when the sampled centroid lands
+  exactly on the tripwire — direction is derived from the prev→curr motion.
+- `Detection.from_supervision` no longer raises `IndexError` when
+  `data["class_name"]` is shorter than `.xyxy`; short rows fall back to the
+  `class_id`/`""` label path.
+- `schema.validate` rejects `bool` where a number is expected (`n`/`id`/`t`/…),
+  type-checks `box` elements, and fails closed (returns a problem) on non-object
+  input instead of raising `TypeError`.
+- `WebhookSink` rejects non-`http(s)` URL schemes (e.g. `file://`, `ftp://`) at
+  construction, since the URL can come from a `workflow.json`.
+
 ### Changed
+
+- `[all]` extra now includes `matplotlib>=3.7`, so the world-model rollout PNG
+  works under a plain `[all]` install.
+- `DESIGN.md` status block bumped to 0.2.x (Norfair adapter, gate hook,
+  `from_supervision`, and the `DinoV2Embedder`/`VJepa2Embedder` latent producers
+  are shipped; `proximity`/`anomaly` remain roadmap).
+- `examples/forecast/README.md`: `multi_consumer.py` is relabeled as needing a
+  clip + `[video]`+`[yolo]` (it runs YOLO over real video), not a no-model demo.
 
 - Rebuilt the flagship soccer world-model visual (`media/world_model_soccer.gif`)
   into a premium split composite: raw broadcast clip → `WorldState` → a top-down

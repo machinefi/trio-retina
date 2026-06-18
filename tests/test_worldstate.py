@@ -135,3 +135,39 @@ def test_from_frame_lifts_scene_latent_from_frame_user():
 def test_from_frame_without_scene_leaves_scene_none():
     frame = Frame(frame_num=1, src="c", t=0.0, tracks=[])
     assert WorldState.from_frame(frame).scene is None
+
+
+def test_from_frame_ignores_unknown_vec_keys():
+    # A foreign/future producer adding an extra key must not crash the frame:
+    # unknown keys are dropped, the known fields still build a valid Vec.
+    frame = Frame(
+        frame_num=1,
+        src="c",
+        t=0.0,
+        tracks=[_track(1, "person", (0.0, 0.0, 10.0, 20.0),
+                       vec={"model": "m", "dim": 4, "junk": 1})],
+    )
+    ws = WorldState.from_frame(frame)
+    vec = ws.entities[0].vec
+    assert isinstance(vec, Vec) and vec.model == "m" and vec.dim == 4
+
+
+def test_from_frame_malformed_vec_degrades_to_none():
+    # Missing the required model/dim -> degrade to vec=None rather than crash.
+    frame = Frame(
+        frame_num=1,
+        src="c",
+        t=0.0,
+        tracks=[_track(1, "person", (0.0, 0.0, 10.0, 20.0), vec={"values": [0.1]})],
+    )
+    ws = WorldState.from_frame(frame)
+    assert ws.entities[0].vec is None
+
+
+def test_from_frame_malformed_scene_degrades_to_none():
+    frame = Frame(
+        frame_num=1, src="c", t=0.0,
+        tracks=[_track(1, "person", (0.0, 0.0, 10.0, 20.0))],
+        user={"scene": {"dim": 8}},  # missing model -> None, no crash
+    )
+    assert WorldState.from_frame(frame).scene is None

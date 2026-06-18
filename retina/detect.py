@@ -79,7 +79,10 @@ def _resolve_label(
 ) -> str:
     """Pick the best available label for row `i` of an `sv.Detections`."""
     if class_name is not None:
-        return str(class_name[i])
+        try:
+            return str(class_name[i])
+        except (IndexError, KeyError):
+            pass  # class_name shorter than xyxy -> fall through to class_id/""
     if class_id is None:
         return ""
     cid = int(class_id[i])

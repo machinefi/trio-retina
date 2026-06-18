@@ -216,21 +216,31 @@ class LineRule(_RuleBase):
 
     def update(self, tracks: list[Track], t: float, frame_idx: int) -> list[Event]:
         events: list[Event] = []
+        present = {trk.track_id for trk in tracks}
         a, b = self._line.scaled(self._frame_size)  # scale once, reuse per track
         for trk in tracks:
             if not _match_class(trk.label, self._classes) or trk.prev_centroid is None:
                 continue
             crossed = segments_intersect(trk.prev_centroid, trk.centroid, a, b)
-            direction = "a_to_b" if side_of_line(trk.centroid, a, b) < 0 else "b_to_a"
+            side = side_of_line(trk.centroid, a, b)
+            # Direction from prev->curr motion: moving toward the negative side
+            # (side decreasing) is a_to_b. Derived from motion so a sample landing
+            # *exactly* on the line (side == 0) still reports the true direction.
+            prev_side = side_of_line(trk.prev_centroid, a, b)
+            direction = "a_to_b" if prev_side > side else "b_to_a"
 
             if self._min_frames == 1:
                 if crossed:
                     events.append(self._ev(trk, t, frame_idx, direction))
                 continue
 
-            side = side_of_line(trk.centroid, a, b)
             pending = self._pending.get(trk.track_id)
             if crossed:
+                if pending is not None and direction != pending[0]:
+                    # Re-crossing in the OPPOSITE direction is a bounce: discard
+                    # the armed pending rather than re-arming a flipped count.
+                    del self._pending[trk.track_id]
+                    continue
                 # A fresh crossing (re-)arms the pending confirmation on the new
                 # side; this frame counts as the first frame held.
                 self._pending[trk.track_id] = [direction, side, 1]
@@ -245,6 +255,12 @@ class LineRule(_RuleBase):
                 else:
                     # Bounced back to the original side before confirmation.
                     del self._pending[trk.track_id]
+
+        # Drop pending crossings for tracks that vanished this frame, so the
+        # state doesn't leak across a stream's lifetime (mirrors ZoneRule).
+        for tid in list(self._pending):
+            if tid not in present:
+                del self._pending[tid]
         return events
 
     def _ev(self, trk: Track, t: float, frame_idx: int, direction: str) -> Event:

@@ -27,8 +27,14 @@ constant-velocity model vs a no-motion model — so you can see the WorldState i
 genuinely dynamics-ready. Whatever the numbers are, they come straight from
 committed code.
 
+### One state, many consumers — needs a clip ([video]+[yolo])
+
+`multi_consumer.py` runs YOLO over a real video and fans the single `WorldState`
+stream out to rules + forecast + an LLM-judge stub, so it needs `[video]`+`[yolo]`
+installed and a clip of your own (defaults to `/tmp/demo.mp4`):
+
 ```bash
-python examples/forecast/multi_consumer.py     # one WorldState -> rules + forecast + an LLM-judge stub
+python examples/forecast/multi_consumer.py your_clip.mp4   # one WorldState -> rules + forecast + an LLM-judge stub
 ```
 
 ### The headline real-video result needs your own footage

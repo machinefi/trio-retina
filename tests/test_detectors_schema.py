@@ -126,6 +126,21 @@ def test_from_supervision_empty():
     assert Detection.from_supervision(_sv([])) == []
 
 
+def test_from_supervision_class_name_shorter_than_xyxy_falls_back():
+    # class_name has 1 entry but xyxy has 2 rows: row 0 uses the name, row 1 must
+    # not IndexError — it falls back to the class_id path (here -> str(class_id)).
+    sv = _sv(
+        [[1, 2, 3, 4], [5, 6, 7, 8]],
+        confidence=[0.9, 0.8],
+        class_id=[3, 9],
+        data={"class_name": np.array(["forklift"])},
+    )
+    out = Detection.from_supervision(sv)
+    assert len(out) == 2
+    assert out[0].label == "forklift"
+    assert out[1].label == "9"  # row 1 fell back to class_id
+
+
 # --- schema / validation ---
 
 
@@ -152,6 +167,22 @@ def test_vec_dual_state_channel():
     d = e.to_dict()
     assert d["vec"]["model"] == "v-jepa2-vitl" and d["vec"]["dim"] == 1024
     assert is_valid(e)  # vec is a registered optional field
+
+
+def test_validate_rejects_bool_as_number():
+    # isinstance(True, int) is True, so a bool must be rejected explicitly.
+    assert any("n" in e for e in validate({"type": "x", "t": 1.0, "src": "c", "n": True}))
+
+
+def test_validate_rejects_non_number_box_elements():
+    errs = validate({"type": "x", "t": 1.0, "src": "c", "box": ["a", "b", "c", "d"]})
+    assert any("box" in e for e in errs)
+
+
+def test_validate_non_dict_input_fails_closed():
+    # validate(123) / validate([...]) must return a problem, not raise TypeError.
+    assert validate(123) == ["event must be an object"]
+    assert validate([1, 2, 3]) == ["event must be an object"]
 
 
 def test_load_schema_shape():

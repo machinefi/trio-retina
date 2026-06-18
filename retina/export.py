@@ -50,9 +50,19 @@ class JsonlSink(_SinkPipeable):
 
 
 class WebhookSink(_SinkPipeable):
-    """POST each event as JSON to a URL. Uses urllib (stdlib) — no requests dep."""
+    """POST each event as JSON to a URL. Uses urllib (stdlib) — no requests dep.
+
+    Only ``http``/``https`` URLs are accepted. The URL may come from a
+    ``workflow.json`` (a *trusted* operator input — see SECURITY.md), but we
+    still reject other schemes (``file://``, ``ftp://``, …) so a stray config
+    can't make urllib read a local file or hit an unexpected protocol."""
 
     def __init__(self, url: str, *, timeout: float = 5.0):
+        from urllib.parse import urlparse
+
+        scheme = urlparse(url).scheme.lower()
+        if scheme not in ("http", "https"):
+            raise ValueError(f"WebhookSink URL must be http(s), got scheme {scheme!r}: {url!r}")
         self._url = url
         self._timeout = timeout
 

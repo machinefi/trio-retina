@@ -2,7 +2,9 @@
 
 import json
 
-from retina import Event, JsonlSink
+import pytest
+
+from retina import Event, JsonlSink, WebhookSink
 
 
 def test_jsonl_sink_writes_one_round_trippable_line_per_event(tmp_path):
@@ -22,3 +24,16 @@ def test_jsonl_sink_writes_one_round_trippable_line_per_event(tmp_path):
     for line, ev in zip(lines, events, strict=True):
         back = json.loads(line)  # each line round-trips
         assert back == ev.to_dict()
+
+
+def test_webhook_sink_rejects_non_http_scheme():
+    # The URL can come from an (untrusted) workflow.json — reject file://, etc.
+    with pytest.raises(ValueError):
+        WebhookSink("file:///etc/passwd")
+    with pytest.raises(ValueError):
+        WebhookSink("ftp://example.com/x")
+
+
+def test_webhook_sink_accepts_http_and_https():
+    WebhookSink("http://example.com/ingest")
+    WebhookSink("https://example.com/ingest")  # no raise

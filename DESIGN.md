@@ -157,9 +157,12 @@ Every arrow is a tiny Protocol. The data unit is the append-only `Frame`
 
 ## Status / roadmap
 
-- **0.1 (now):** event format + geometric primitives (zone/line/count/dwell),
-  IoU tracker, JSONL/webhook sinks, YOLO + callable detector adapters.
-- **0.2:** Condition-based runtime + gate hook; Frame as a first-class stream;
-  Norfair/ByteTrack adapters; `proximity`/`anomaly` primitives.
-- **later:** VLM-as-producer (constrained JSON decode), schema vocabulary
-  growth (MEVA/VidVRD), Kafka/MQTT sinks.
+- **0.2.x (now), shipped:** event format + geometric primitives
+  (zone/line/count/dwell), IoU tracker, JSONL/webhook sinks, YOLO + callable +
+  VLM detector adapters; `Detection.from_supervision` (Supervision interop);
+  the detection **gate** hook; the Norfair tracker adapter; the latent producers
+  (`DinoV2Embedder` per-object + `VJepa2Embedder` scene-level) feeding the `vec`
+  channel onto `WorldState`.
+- **roadmap:** ByteTrack adapter; `proximity`/`anomaly` primitives;
+  VLM-as-producer (constrained JSON decode); schema vocabulary growth
+  (MEVA/VidVRD); Kafka/MQTT sinks.

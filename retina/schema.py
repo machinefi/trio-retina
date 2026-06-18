@@ -28,9 +28,20 @@ _OPTIONAL_TYPES: dict[str, Any] = {
 }
 
 
+# Optional fields that are numeric: a bool must not pass as a number/int (since
+# `isinstance(True, int)` is True). Listed here so the type check rejects bools.
+_NUMERIC_FIELDS = frozenset({"id", "dur", "n", "conf", "frame"})
+
+
 def validate(event) -> list[str]:
     """Return a list of problems (empty = valid). Accepts an `Event` or a dict."""
-    d = event.to_dict() if hasattr(event, "to_dict") else dict(event)
+    if hasattr(event, "to_dict"):
+        d = event.to_dict()
+    elif isinstance(event, dict):
+        d = dict(event)
+    else:
+        # Fail closed on non-mapping input (e.g. validate(123)) instead of raising.
+        return ["event must be an object"]
     errs: list[str] = []
 
     for k in _REQUIRED:
@@ -39,19 +50,25 @@ def validate(event) -> list[str]:
 
     if isinstance(d.get("type"), str) is False and "type" in d:
         errs.append("'type' must be a string")
-    if "t" in d and not isinstance(d["t"], (int, float, str)):
+    if "t" in d and (not isinstance(d["t"], (int, float, str)) or isinstance(d["t"], bool)):
         errs.append("'t' must be a number (epoch seconds) or RFC3339 string")
     if "src" in d and not isinstance(d["src"], str):
         errs.append("'src' must be a string")
 
     for k, ty in _OPTIONAL_TYPES.items():
-        if d.get(k) is not None and not isinstance(d[k], ty):
+        v = d.get(k)
+        if v is None:
+            continue
+        if not isinstance(v, ty) or (k in _NUMERIC_FIELDS and isinstance(v, bool)):
             name = ty.__name__ if isinstance(ty, type) else "/".join(t.__name__ for t in ty)
             errs.append(f"'{k}' must be {name}")
 
     box = d.get("box")
-    if isinstance(box, (list, tuple)) and len(box) != 4:
-        errs.append("'box' must be [x1, y1, x2, y2]")
+    if isinstance(box, (list, tuple)):
+        if len(box) != 4:
+            errs.append("'box' must be [x1, y1, x2, y2]")
+        elif any(not isinstance(v, (int, float)) or isinstance(v, bool) for v in box):
+            errs.append("'box' elements must be numbers")
     conf = d.get("conf")
     if isinstance(conf, (int, float)) and not (0.0 <= conf <= 1.0):
         errs.append("'conf' must be in 0..1")

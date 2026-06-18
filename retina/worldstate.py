@@ -24,6 +24,21 @@ SPEC = "retina.worldstate/0.1"
 
 BBox = tuple[float, float, float, float]
 
+_VEC_FIELDS = ("model", "dim", "dtype", "ref", "values")
+
+
+def _vec_from_raw(raw: Any) -> Vec | None:
+    """Build a `Vec` from a possibly-foreign dict: keep only known fields
+    (ignore extras), and degrade to `None` if the required `model`/`dim` are
+    missing or malformed — a foreign/future producer never kills the frame."""
+    if not isinstance(raw, dict):
+        return None
+    if not isinstance(raw.get("model"), str) or not isinstance(raw.get("dim"), int) or isinstance(
+        raw.get("dim"), bool
+    ):
+        return None
+    return Vec(**{k: raw[k] for k in _VEC_FIELDS if k in raw})
+
 
 @dataclass(slots=True)
 class Vec:
@@ -161,7 +176,7 @@ class WorldState:
         entities: list[Entity] = []
         for trk in frame.tracks:
             raw = trk.user.get("vec") if isinstance(trk.user, dict) else None
-            vec = Vec(**raw) if isinstance(raw, dict) else None
+            vec = _vec_from_raw(raw)
             entities.append(
                 Entity(
                     id=str(trk.track_id),
@@ -173,7 +188,7 @@ class WorldState:
             )
         fuser = frame.user if isinstance(getattr(frame, "user", None), dict) else {}
         raw_scene = fuser.get("scene")
-        scene = Vec(**raw_scene) if isinstance(raw_scene, dict) else None
+        scene = _vec_from_raw(raw_scene)
         return cls(
             src=frame.src,
             t=frame.t,

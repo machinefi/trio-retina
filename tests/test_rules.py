@@ -250,3 +250,33 @@ def test_linerule_min_frames_bounce_back_suppressed():
     # Staying on the original side keeps emitting nothing.
     assert rule.update([_line_trk(35, 40)], 2.0, 2) == []
     assert rule.update([_line_trk(30, 35)], 3.0, 3) == []
+
+
+def test_linerule_pending_cleared_when_track_vanishes():
+    # A pending (unconfirmed) crossing for a track that disappears must not leak.
+    rule = LineRule(_WIRE, min_frames=3)
+    assert rule.update([_line_trk(60, 40, tid=7)], 0.0, 0) == []  # armed, pending
+    assert 7 in rule._pending
+    assert rule.update([], 1.0, 1) == []  # track gone -> pending swept
+    assert rule._pending == {}
+
+
+def test_linerule_oscillation_straddling_line_does_not_emit():
+    # An oscillating centroid that re-crosses in the opposite direction is a
+    # bounce: the armed pending is discarded, never confirmed. x-seq 40,55,45,40.
+    rule = LineRule(_WIRE, min_frames=3)
+    assert rule.update([_line_trk(40, 30)], 0.0, 0) == []  # 30->40, no cross yet
+    assert rule.update([_line_trk(55, 40)], 1.0, 1) == []  # 40->55 cross, arm a_to_b
+    assert rule.update([_line_trk(45, 55)], 2.0, 2) == []  # 55->45 cross back -> bounce
+    assert rule.update([_line_trk(40, 45)], 3.0, 3) == []  # 45->40, nothing pending
+    assert rule._pending == {}
+
+
+def test_linerule_centroid_exactly_on_line_reports_true_direction():
+    # A clean left->right track that samples *exactly* on the tripwire (cx=50)
+    # still reports a_to_b — direction is derived from prev->curr motion, not the
+    # (ambiguous) side of a point sitting on the line.
+    rule = LineRule(_WIRE)  # min_frames=1
+    out = rule.update([_line_trk(50, 40)], 1.0, 0)  # 40 -> exactly 50
+    assert [e.type for e in out] == [EventType.LINE_CROSS]
+    assert out[0].dir == "a_to_b"
