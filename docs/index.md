@@ -117,6 +117,10 @@ The latent channel measurably improves prediction — **+83% over constant-veloc
 +8% over pos-only**, widening with the horizon. Full grid in
 [`BENCHMARK.md`](https://github.com/machinefi/trio-retina/blob/main/BENCHMARK.md).
 
+![Top-down demo — each tracked car's next move is predicted (indigo arrow) off one Retina WorldState, with the actual path in gray for honest comparison](https://raw.githubusercontent.com/machinefi/trio-retina/main/media/world_model_demo.gif)
+
+*See it work: each tracked object is a car drawn from Retina's WorldState; the indigo arrow is the real trained model's predicted next move (rolled out from that one state), gray is the actual path. The straight car is nailed; the curving car shows the honest divergence where the appearance latent earns its keep.*
+
 **3 · Front + back compose through one standard** — any encoder in front, any dynamics
 behind, meeting on one serializable state. See
 [`end_to_end.py`](https://github.com/machinefi/trio-retina/blob/main/examples/world_model/end_to_end.py).

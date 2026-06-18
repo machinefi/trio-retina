@@ -8,12 +8,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- World-model hero visual: `media/world_model_hero.gif`, an honest looping
-  imagination rollout rendered from the real trained dynamics model on a held-out
-  synthetic sequence (magenta = imagined, gray = actual), plus a minimal
-  `media/world_model_seam.png` (any encoder → one WorldState → any dynamics). The
-  README first screen now leads with the world-model story. Generators:
-  `examples/world_model/make_hero_gif.py` and `make_seam_png.py`.
+- World-model demo visual: `media/world_model_demo.gif`, a recognizable top-down
+  scene where each tracked object is a labeled car and the real trained dynamics
+  model's predicted next move is drawn ahead (indigo) against the actual path
+  (gray) on a held-out synthetic sequence. Generator:
+  `examples/world_model/make_demo_gif.py`.
 - `retina.embed.DinoV2Embedder`: the first real producer for the latent `vec`
   channel — a frozen DINOv2 per-object embedder (sizes small/base/large, dim
   384/768/1024) that crops each track and attaches a genuine self-supervised
@@ -48,6 +47,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (MPS, real DINOv2): at horizon 7, pos+appearance 1.33 px beats const-velocity
   7.68 px (+83%) and pos-only 1.45 px (+8%); the appearance edge widens with the
   horizon. Framed as early/illustrative (synthetic scene, small PoC).
+
+### Changed
+
+- Replaced the abstract world-model hero GIF with a recognizable top-down car
+  demo (`media/world_model_demo.gif`); retired `media/world_model_hero.gif` and
+  `examples/world_model/make_hero_gif.py`.
 
 ## [0.2.1] — 2026-06-17
 
