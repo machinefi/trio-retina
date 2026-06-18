@@ -6,6 +6,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Rebuilt the flagship soccer world-model visual (`media/world_model_soccer.gif`)
+  into a premium split composite: raw broadcast clip → `WorldState` → a top-down
+  tactical radar where each player is a team-coloured dot (teams clustered from
+  DINOv2 appearance vectors) with a brand-indigo predicted next run and a faint
+  gray past trail. No boxes/ids/legends — it shows perception-to-predicted-state,
+  not detection. New renderer `examples/world_model/soccer/render_split.py`
+  replaces `train_and_render.py`.
+
 ### Added
 
 - Flagship world-model demo on **real soccer footage**: a short broadcast clip
