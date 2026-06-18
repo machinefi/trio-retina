@@ -31,6 +31,11 @@ theme:
 
 nav:
   - Home: index.md
+  - Concepts: concepts.md
+  - Cookbook: cookbook.md
+  - CLI: cli.md
+  - Extend: extend.md
+  - FAQ: faq.md
   - Event spec: spec.md
   - Design notes: design.md
   - API reference: api.md

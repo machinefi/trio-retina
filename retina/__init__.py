@@ -25,6 +25,7 @@ Compose models like n8n / LCEL (no GUI):
 
 from __future__ import annotations
 
+from .assets import sample_events, sample_video
 from .compose import Pipeable
 from .detect import (
     CallableDetector,
@@ -118,4 +119,7 @@ __all__ = [
     # evaluation
     "event_f1",
     "match_events",
+    # sample assets
+    "sample_events",
+    "sample_video",
 ]

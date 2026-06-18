@@ -18,6 +18,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Docs depth**: new code-first pages wired into the site nav —
+  `docs/concepts.md` (the `Frame → Detection → Track → Event` model, the dual
+  symbolic + latent state, where Retina sits), `docs/cookbook.md` (runnable task
+  recipes ending in a `retina.event` / `WorldState`, not a drawn frame),
+  `docs/cli.md` (`retina demo`/`run`/`validate`/`bench`), `docs/extend.md` (add
+  your own detector / tracker / rule / sink behind the tiny `Protocol`s), and
+  `docs/faq.md` (which extra, "no events?", RTSP reconnect, CPU vs GPU). `mkdocs
+  build --strict` passes.
+- **Sample assets so examples run out of the box** (exported from `retina`):
+  `retina.sample_events()` returns a path to a small `retina.event` JSONL
+  **bundled in the wheel** (`retina/_assets/sample_events.jsonl`) — fully offline,
+  ready for `validate` / the CLI; `retina.sample_video()` returns a tiny clip
+  generated synthetically on first call (deterministic moving shapes via OpenCV)
+  and cached under `~/.cache/trio-retina/`, for exercising the video-source
+  plumbing with zero network and zero third-party-footage licensing risk (it is
+  *not* real footage — the YOLO-on-real-footage path needs your own clip).
+  Friendly `[video]` hint if OpenCV is missing.
 - `retina` **CLI** (stdlib `argparse`, no new deps): `retina demo` runs a
   synthetic dock scene and prints the `retina.event` stream on a bare numpy-only
   install; `retina run <workflow.json> <source>` runs a declarative pipeline over

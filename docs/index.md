@@ -127,8 +127,15 @@ behind, meeting on one serializable state. See
 
 ## Where to go next
 
+- **[Concepts](concepts.md)** — the mental model in one read: `Frame` → `Detection` → `Track` → `Event`, the dual symbolic + latent state, and where Retina sits in the stack.
+- **[Cookbook](cookbook.md)** — runnable task recipes (zone intrusion → webhook, counting / line-crossing, Supervision interop, latent `vec`, validation, the CLI).
+- **[CLI](cli.md)** — `retina demo` / `run` / `validate` / `bench`.
+- **[Extend](extend.md)** — add your own detector / tracker / rule / sink behind the tiny `Protocol`s.
+- **[FAQ](faq.md)** — which extra to install, "no events?", RTSP reconnect, CPU vs GPU, where examples live.
 - **[Event spec](spec.md)** — the tiny, JWT-style `retina.event` interchange format.
 - **[Design notes](design.md)** — why Retina is the *encoder* of a world model, and what it deliberately does not do.
 - **[API reference](api.md)** — the public Python API, generated from docstrings.
+
+No footage to test the video path? `retina.sample_video()` returns a tiny generated clip; `retina.sample_events()` returns a bundled `retina.event` sample for `validate` and the CLI — both work offline.
 
 For the full landing page (demos, supported models, comparisons, roadmap), see the [README on GitHub](https://github.com/machinefi/trio-retina#readme).
