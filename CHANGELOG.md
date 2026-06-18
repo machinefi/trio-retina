@@ -18,6 +18,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `retina` **CLI** (stdlib `argparse`, no new deps): `retina demo` runs a
+  synthetic dock scene and prints the `retina.event` stream on a bare numpy-only
+  install; `retina run <workflow.json> <source>` runs a declarative pipeline over
+  a video/RTSP source (lazy OpenCV, `--jsonl` to a file); `retina validate
+  <events.jsonl>` checks a JSONL stream against `retina.event/0.1` (non-zero exit
+  on any invalid); `retina bench` reports Retina-layer overhead in ms/frame;
+  `retina --version`. Wired as a console script (`retina = retina.cli:main`).
+- **`py.typed`** marker (PEP 561): the package now ships as typed, and the public
+  API surface (detectors / trackers / rules / sinks / pipeline / events /
+  worldstate / schema) passes a basic type-check cleanly.
+- Concise `__repr__` on the core data types (`Event`, `WorldState`, `Entity`,
+  `Vec`, `Detection`, `Track`, `Zone`, `Line`, `Relation`, `Frame`) — salient
+  fields only, no `None`/empty noise (e.g.
+  `Event(zone.enter id=42 label='person' zone='dock' t=...)`).
 - Flagship world-model demo on **real soccer footage**: a short broadcast clip
   (Roboflow's MIT-licensed `sports` sample, originally DFL Bundesliga) runs
   through a real YOLO detector + IoU tracker, a frozen DINOv2-small appearance

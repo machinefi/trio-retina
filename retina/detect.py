@@ -28,6 +28,13 @@ class Detection:
     embedding: np.ndarray | None = None  # optional re-id appearance vector
     attrs: dict[str, Any] = field(default_factory=dict)
 
+    def __repr__(self) -> str:
+        box = "(" + ",".join(f"{v:g}" for v in self.bbox) + ")"
+        s = f"Detection(label={self.label!r} bbox={box} conf={self.confidence:.2f}"
+        if self.embedding is not None:
+            s += " +emb"
+        return s + ")"
+
     @classmethod
     def from_supervision(
         cls,

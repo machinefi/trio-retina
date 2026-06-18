@@ -31,6 +31,14 @@ pip install 'trio-retina[video]'   # + OpenCV frame source (files / RTSP / webca
 pip install 'trio-retina[all]'     # everything
 ```
 
+Then try the CLI — `retina demo` runs a synthetic dock scene and prints the `retina.event` stream (numpy only, no model/GPU/video):
+
+```bash
+pip install trio-retina && retina demo        # instant event stream, no model
+retina validate events.jsonl                  # check a JSONL stream against the spec
+retina --version                              # also: retina run / retina bench
+```
+
 ## 🔥 quickstart
 
 Runs on a bare `pip install trio-retina` (numpy only) — no model, no GPU, no video file. A stand-in detector walks one "person" across a dock zone; Retina emits the real `retina.event` stream:

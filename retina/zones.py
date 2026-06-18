@@ -34,6 +34,10 @@ class Zone:
     def contains(self, p: Point, frame_size: tuple[int, int] | None = None) -> bool:
         return point_in_polygon(p, self.scaled(frame_size))
 
+    def __repr__(self) -> str:
+        norm = " normalized" if self.normalized else ""
+        return f"Zone(id={self.zone_id!r} pts={len(self.polygon)}{norm})"
+
 
 @dataclass(frozen=True, slots=True)
 class Line:
@@ -58,3 +62,7 @@ class Line:
     ) -> bool:
         a, b = self.scaled(frame_size)
         return segments_intersect(p_prev, p_now, a, b)
+
+    def __repr__(self) -> str:
+        norm = " normalized" if self.normalized else ""
+        return f"Line(id={self.line_id!r} {tuple(self.a)}->{tuple(self.b)}{norm})"

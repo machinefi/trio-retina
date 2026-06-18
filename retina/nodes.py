@@ -63,7 +63,7 @@ class RuleNode(Node):
             bind(frame.width, frame.height)
         events = self.rule.update(frame.tracks, frame.t, frame.frame_num)
         for ev in events:
-            if ev.src is None:
+            if not ev.src:  # rule left it unset (None / "") -> stamp the frame source
                 ev.src = frame.src
         frame.events.extend(events)
         return frame

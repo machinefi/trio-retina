@@ -48,6 +48,16 @@ class Track:
     def dwell_s(self) -> float:
         return max(0.0, self.last_seen - self.first_seen)
 
+    def __repr__(self) -> str:
+        box = "(" + ",".join(f"{v:g}" for v in self.bbox) + ")"
+        parts = [f"id={self.track_id}", f"label={self.label!r}", f"bbox={box}"]
+        parts.append(f"dwell={self.dwell_s:g}s")
+        if not self.confirmed:
+            parts.append("unconfirmed")
+        if self.missed:
+            parts.append(f"missed={self.missed}")
+        return f"Track({' '.join(parts)})"
+
 
 class Tracker(Protocol):
     def update(self, detections: list[Detection], t: float) -> list[Track]: ...

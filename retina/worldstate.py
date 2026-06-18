@@ -44,6 +44,14 @@ class Vec:
             d["values"] = list(self.values)
         return d
 
+    def __repr__(self) -> str:
+        carrier = ""
+        if self.ref is not None:
+            carrier = f" ref={self.ref!r}"
+        elif self.values is not None:
+            carrier = " values=inline"
+        return f"Vec(model={self.model!r} dim={self.dim}{carrier})"
+
 
 @dataclass(slots=True)
 class Entity:
@@ -68,6 +76,14 @@ class Entity:
             d["vec"] = self.vec.to_dict()
         return d
 
+    def __repr__(self) -> str:
+        parts = [f"id={self.id!r}", f"type={self.type!r}"]
+        if self.conf is not None:
+            parts.append(f"conf={self.conf:.2f}")
+        if self.vec is not None:
+            parts.append("vec")
+        return f"Entity({' '.join(parts)})"
+
 
 @dataclass(slots=True)
 class Relation:
@@ -89,6 +105,9 @@ class Relation:
         if self.conf is not None:
             d["conf"] = self.conf
         return d
+
+    def __repr__(self) -> str:
+        return f"Relation({self.subj!r} -{self.predicate}-> {self.obj!r})"
 
 
 @dataclass(slots=True)
@@ -120,6 +139,14 @@ class WorldState:
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), separators=(",", ":"), default=str)
+
+    def __repr__(self) -> str:
+        parts = [f"src={self.src!r}", f"t={self.t}", f"entities={len(self.entities)}"]
+        if self.relations:
+            parts.append(f"relations={len(self.relations)}")
+        if self.scene is not None:
+            parts.append("scene")
+        return f"WorldState({' '.join(parts)})"
 
     @classmethod
     def from_frame(cls, frame: Any) -> WorldState:

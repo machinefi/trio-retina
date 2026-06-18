@@ -72,10 +72,11 @@ class DinoV2Embedder(Pipeable):
         self.device_arg = device
         self.normalize = normalize
         self.bgr = bgr
-        # Heavy objects are built lazily on first __call__ (see _lazy).
-        self._processor = None
-        self._model = None
-        self._torch = None
+        # Heavy objects are built lazily on first __call__ (see _lazy). Typed Any
+        # so the type checker doesn't infer them as permanently None.
+        self._processor: Any = None
+        self._model: Any = None
+        self._torch: Any = None
         self.device: str | None = None
 
     def to_node(self):
@@ -217,10 +218,11 @@ class VJepa2Embedder(Pipeable):
         # `dim` is discovered from the model on first forward; the Vec is tagged
         # with the true hidden size, so we don't hard-code it wrong.
         self.dim: int | None = None
-        # Heavy objects are built lazily on first __call__ (see _lazy).
-        self._processor = None
-        self._model = None
-        self._torch = None
+        # Heavy objects are built lazily on first __call__ (see _lazy). Typed Any
+        # so the type checker doesn't infer them as permanently None.
+        self._processor: Any = None
+        self._model: Any = None
+        self._torch: Any = None
         self.device: str | None = None
 
     def to_node(self):

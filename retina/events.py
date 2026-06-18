@@ -90,6 +90,26 @@ class Event:
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), separators=(",", ":"), default=str)
 
+    def __repr__(self) -> str:
+        # Concise, information-dense: the type up front, then only the salient
+        # non-None fields. Avoids the noisy auto-repr full of `None`s.
+        parts: list[str] = []
+        if self.id is not None:
+            parts.append(f"id={self.id}")
+        if self.label is not None:
+            parts.append(f"label={self.label!r}")
+        if self.zone is not None:
+            parts.append(f"zone={self.zone!r}")
+        if self.dir is not None:
+            parts.append(f"dir={self.dir!r}")
+        if self.dur is not None:
+            parts.append(f"dur={self.dur}")
+        if self.n is not None:
+            parts.append(f"n={self.n}")
+        parts.append(f"t={self.t}")
+        tail = (" " + " ".join(parts)) if parts else ""
+        return f"Event({self.type}{tail})"
+
 
 @dataclass(slots=True)
 class Frame:
@@ -109,3 +129,11 @@ class Frame:
     tracks: list = field(default_factory=list)  # list[Track]
     events: list = field(default_factory=list)  # list[Event]
     user: dict[str, Any] = field(default_factory=dict)
+
+    def __repr__(self) -> str:
+        # Counts, not the full contents — a Frame mid-pipeline can hold dozens of
+        # detections/tracks/events plus a raw image array.
+        return (
+            f"Frame(#{self.frame_num} src={self.src!r} t={self.t} "
+            f"dets={len(self.detections)} tracks={len(self.tracks)} events={len(self.events)})"
+        )

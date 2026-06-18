@@ -264,7 +264,7 @@ def video_frames(
                 # finite file EOF, or reconnection exhausted/disabled -> end.
                 break
 
-            if idx % stride == 0:
+            if idx % stride == 0 and frame is not None:
                 yield frame, ts
                 emitted += 1
                 if max_frames is not None and emitted >= max_frames:

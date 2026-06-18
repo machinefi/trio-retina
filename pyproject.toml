@@ -49,6 +49,9 @@ all = ["ultralytics>=8.3", "norfair>=2.2", "opencv-python>=4.8", "transformers>=
 dev = ["pytest>=8", "ruff>=0.6", "norfair>=2.2"]
 docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
 
+[project.scripts]
+retina = "retina.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/machinefi/trio-retina"
 Source = "https://github.com/machinefi/trio-retina"

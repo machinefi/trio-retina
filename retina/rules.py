@@ -85,7 +85,7 @@ class ZoneRule(_RuleBase):
         if anchor not in _ANCHORS:
             raise ValueError(f"unsupported anchor: {anchor}")
         self._zone = zone
-        self._src = src
+        self._src: str = src or ""  # empty -> stamped with the frame source by RuleNode
         self._classes = classes
         self._dwell_s = dwell_s
         self._exit_grace_s = exit_grace_s
@@ -206,7 +206,7 @@ class LineRule(_RuleBase):
         if min_frames < 1:
             raise ValueError(f"min_frames must be >= 1, got {min_frames}")
         self._line = line
-        self._src = src
+        self._src: str = src or ""  # empty -> stamped with the frame source by RuleNode
         self._classes = classes
         self._min_frames = min_frames
         self._frame_size = frame_size
@@ -283,7 +283,7 @@ class CountRule(_RuleBase):
             raise ValueError(f"unsupported comparator: {comparator}")
         if anchor not in _ANCHORS:
             raise ValueError(f"unsupported anchor: {anchor}")
-        self._src = src
+        self._src: str = src or ""  # empty -> stamped with the frame source by RuleNode
         self._threshold = threshold
         self._classes = classes
         self._zone = zone
