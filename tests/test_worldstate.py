@@ -63,6 +63,61 @@ def test_minimal_worldstate_is_two_keys():
     assert WorldState(src="c", t=0.0).to_dict() == {"src": "c", "t": 0.0}
 
 
+def test_entity_locus_emitted_only_when_set():
+    # Default: no locus key at all (omit-empty, like bbox/conf/vec).
+    bare = Entity(id="1", type="thing").to_dict()
+    assert "locus" not in bare
+
+    # Set: emitted as a plain list, distinct from bbox.
+    e = Entity(id="subject", type="rf_subject", locus=(2.41, 3.07))
+    d = e.to_dict()
+    assert d == {"id": "subject", "type": "rf_subject", "locus": [2.41, 3.07]}
+    assert "bbox" not in d  # locus is not a bbox
+
+    # bbox (pixels) and locus (metric world frame) can coexist independently.
+    both = Entity(
+        id="2", type="person", bbox=(10.0, 20.0, 60.0, 180.0), locus=(1.0, 2.0, 0.5)
+    ).to_dict()
+    assert both["bbox"] == [10.0, 20.0, 60.0, 180.0]
+    assert both["locus"] == [1.0, 2.0, 0.5]
+
+
+def test_entity_repr_notes_locus_presence():
+    assert "locus" not in repr(Entity(id="1", type="thing"))
+    assert "locus" in repr(Entity(id="1", type="thing", locus=(0.0, 0.0)))
+
+
+def test_entity_locus_round_trips_through_json():
+    ws = WorldState(
+        src="csi_room",
+        t=1.0,
+        entities=[
+            Entity(
+                id="subject",
+                type="rf_subject",
+                locus=(2.41, 3.07),
+                vec=Vec(model="csi-jepa/v0", dim=2, values=[0.1, 0.2]),
+            )
+        ],
+        scene=Vec(model="csi-jepa/v0", dim=2, values=[0.3, 0.4]),
+    )
+    back = json.loads(ws.to_json())
+    assert back == ws.to_dict()
+    assert back["entities"][0]["locus"] == [2.41, 3.07]
+
+
+def test_old_worldstate_without_locus_still_parses():
+    # An additive optional field must not change pre-0.2 payloads: a state with no
+    # locus serializes exactly as before (no spurious locus key anywhere).
+    ws = WorldState(
+        src="cam_01",
+        t=1.0,
+        entities=[Entity(id="7", type="person", bbox=(10.0, 20.0, 60.0, 180.0))],
+    )
+    d = ws.to_dict()
+    assert d["entities"][0] == {"id": "7", "type": "person", "bbox": [10.0, 20.0, 60.0, 180.0]}
+
+
 def test_json_round_trips():
     ws = WorldState(
         src="cam_01",

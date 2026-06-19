@@ -98,6 +98,24 @@ Each entity carries both channels: a symbolic core *and* an optional model-tagge
 }
 ```
 
+An entity carries two distinct, optional position channels (either, both, or
+neither):
+
+- **`bbox`** — an image-space axis-aligned box in **pixels** (the vision path).
+- **`locus`** *(0.2+)* — a **metric position in a world/scene coordinate frame**
+  (units and frame defined by the producer, e.g. metres in a room/map frame). It is
+  the typed home for field / non-bbox signals (CSI, radar, lidar, GPS) whose state
+  is a point in space rather than a pixel box. `locus` is *not* a reprojection of
+  `bbox`; it is a separate, producer-defined coordinate.
+
+```json
+{"id": "subject", "type": "rf_subject", "locus": [2.41, 3.07]}
+```
+
+The `scene` `vec` is the home for a **whole-field / scene-level latent** with no box
+— a V-JEPA scene vector, or a **CSI channel latent** for an RF measurement of the
+whole room.
+
 Fusion: detector+tracker → symbolic core + per-object ReID `vec`; frozen V-JEPA →
 scene `vec` (+ optional ROI-pooled per-entity `vec`). `WorldState.from_frame`
 assembles the symbolic core from a `Frame`'s tracks; relations and scene are
