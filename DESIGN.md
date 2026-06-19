@@ -63,6 +63,21 @@ density* — is only **one axis**. There are two, and they're orthogonal:
 We are not behind on the deep axis; we are defining the wide one. The deep-axis
 race (DINOv3, V-JEPA 2, causal tokenizers) is "a better latent" — we don't run it.
 
+### Four ways a world model leverages this wide L1
+
+Retina doesn't try to win a vertical — driving, games, and robotics each already
+have their own end-to-end stack. The wide L1 is the **neutral state standard those
+structured, multi-sensor world models can share**, and it earns adoption four ways:
+
+1. **One contract for many sensors.** Heterogeneous encoders — a camera embedding, a radar return, an IMU stream, a WiFi CSI latent — all land in the *same* `WorldState`, fused on a model-tagged `vec` and a typed `locus` / `scene`. The OpenTelemetry move: don't build the sensors, normalize any of them into one state.
+2. **Encoder ⟂ dynamics.** Front and back meet on a frozen state contract, so either side swaps without retraining the other. The seam is the product, not the model.
+3. **A state you can read, log, and verify.** Small, serializable, half-symbolic — the state doubles as the world model's observability layer (eval against ground truth, stream to a digital twin, `retina.event` alerts), even when the dynamics is a black box. The deep, opaque latent cannot do this; the wide, dual one can.
+4. **Cheap at the edge (the L7 inversion).** Encode-to-state runs on CPU at the edge; the heavy dynamics lives elsewhere. Retina is the lightweight front door that turns raw signals into state before the expensive layer sees them.
+
+The scope is deliberate: this serves world models that **reason over structured,
+multi-sensor state** — not monolithic pixel-to-pixel video generators, whose
+opaque internal latent is exactly the deep axis we don't run.
+
 ### What we take from the deep axis (for our latent channel)
 
 - **Reconstruction → prediction (JEPA).** Prefer V-JEPA-style *predictive* latents
