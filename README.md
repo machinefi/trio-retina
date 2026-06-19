@@ -20,7 +20,7 @@
 
 **Trio Retina** (Retina for short) turns raw signals — video, sensor — into a **queryable world-state**: readable **events** (`zone.enter`, `dwell`, `line.cross`) *plus* a standardized **latent** `vec` channel on the same records, on one small model-agnostic standard. The latent channel is a real, serializable interface (attach your own embedding — see [`examples/latent_vec.py`](examples/latent_vec.py)), and the automatic *producers* now ship: `DinoV2Embedder` fills per-object `entity.vec` and `VJepa2Embedder` fills the scene latent `ws.scene`. Bring any model (YOLO, V-JEPA, DINO, a VLM, or none); Retina assembles its output into state a dynamics model, rule engine, or LLM can consume — and a small example dynamics model [imagines the future off that state](#-the-world-model-stack).
 
-Think **OpenTelemetry for perception** — it doesn't build the sensors, it normalizes any of them into one state. In world-model terms it's the **encoder** (`s = Enc(x)`), and *only* the encoder; dynamics and policy build on top. → see [`DESIGN.md`](DESIGN.md).
+Think **OpenTelemetry for perception** — it doesn't build the sensors, it normalizes any of them into one state. In world-model terms it's the **encoder** (`s = Enc(x)`), and *only* the encoder; dynamics and policy build on top. Retina isn't trying to win a vertical — driving, games, and robotics each already have their own stack — it's the **neutral state standard those structured, multi-sensor world models can share**. → see [`DESIGN.md`](DESIGN.md).
 
 ## 💻 install
 
@@ -189,9 +189,20 @@ validate(event)   # -> [] if valid, else a list of problems  (pure-Python, ships
 
 ## 🌍 the world-model stack
 
-Retina is the **encoder** (`s = Enc(x)`) in a world model. With the latent
-producers shipped, the whole front-to-back seam is now demonstrable end to end —
-on a synthetic scene, as a small but honest proof of concept ([`examples/world_model/`](examples/world_model/)):
+Retina is the **encoder** (`s = Enc(x)`) in a world model. It doesn't try to win
+any one vertical — driving, games, and robotics each already have their own
+stack; it's the **neutral state layer those structured, multi-sensor world models
+plug into**, in four ways:
+
+- **One contract for many sensors.** A camera embedding, a radar return, an IMU stream, a WiFi CSI latent — heterogeneous encoders all land in the *same* `WorldState`, fused on a model-tagged `vec` and a typed `locus` / `scene`. Retina doesn't build the sensors; it normalizes any of them into one state.
+- **Swap the front or the back, never both.** Encoder and dynamics meet on a frozen state contract — change the perception model without retraining the dynamics, or change the dynamics without touching perception. The seam is the product.
+- **A state you can read, log, and verify.** Small, serializable, half-symbolic — the state doubles as the world model's observability layer: eval it against ground truth, stream it to a digital twin, alert on a `retina.event`, even when the dynamics itself is a black box.
+- **Cheap at the edge.** The encode-to-state step runs on CPU; the heavy dynamics lives wherever you like. Retina is the lightweight front door that turns raw signals into state before the expensive layer sees them.
+
+The scope is deliberate — Retina is for world models that **reason over
+structured, multi-sensor state**, not monolithic pixel-to-pixel video generators.
+With the latent producers shipped, that seam is now demonstrable end to end — on a
+synthetic scene, as a small but honest proof of concept ([`examples/world_model/`](examples/world_model/)):
 
 **1 · swap the encoder, the state is constant.** The same pipeline, run three
 ways — symbolic-only, `+ DinoV2Embedder` (per-object `entity.vec`), and
@@ -220,7 +231,9 @@ appearance) decides the future. → [`dynamics.py`](examples/world_model/dynamic
 
 > **Raw video → one standardized Retina `WorldState` → predicted player runs.** Left is a real broadcast clip (Roboflow's MIT-licensed [`sports`](https://github.com/roboflow/sports) sample, originally DFL Bundesliga). It goes through a real YOLO detector + tracker and a frozen DINOv2-small appearance encoder, and comes out as one model-agnostic `WorldState`; the right panel renders that state as a **top-down tactical radar**, and the small dynamics transformer — trained offline on those sequences — draws each player's **predicted next run** ahead in brand indigo (faint gray = where they came from). Teams are coloured by clustering the players' DINOv2 appearance vectors into two groups — the latent knows who's who. The radar is a stylized perspective top-down (no Roboflow pitch-keypoint weights on this host, so a fixed homography from the clip's pitch landmarks, not per-frame). Honest by design: player motion is stochastic, so at this short horizon the learned model roughly *ties* a constant-velocity baseline on held-out error — the appearance latent's *measurable* win lives in the cleaner synthetic ablation above, not on free-running humans. Real pipeline, end to end — [`examples/world_model/soccer/`](examples/world_model/soccer/). The synthetic car rollout (held-out, where the latent earns its keep) lives in [`make_demo_gif.py`](examples/world_model/make_demo_gif.py) · [`media/rollout.png`](examples/world_model/media/rollout.png).
 
-**3 · front + back compose through one standard.** Any encoder in front, any
+**3 · the state layer is signal-agnostic — the same schema carries a WiFi CSI world model.** The `WorldState`/`Vec` that carried DINOv2 *appearance* above also carries a **WiFi CSI channel latent**, with **zero core schema change** to express an RF world model: the global channel latent drops into `ws.scene`, and the subject's metric room position rides the typed `Entity.locus` (metres, distinct from the pixel `bbox`). On **synthetic CSI** (a documented forward model, fully offline) we reproduce the *recipe* of two CSI world-model papers — a JEPA that predicts the next latent ([arXiv:2409.10045](https://arxiv.org/abs/2409.10045)) under an action-conditioned homomorphic transition ([arXiv:2603.20048](https://arxiv.org/abs/2603.20048)) — and route it through Retina's state layer. Real numbers from one run (seed 0, CPU): action-conditioning improves next-latent prediction **+72.9%** over an action-blind ablation; the latent self-organizes into a **metric room map (~0.33 m** probe error in a 6×5 m room); and the imagination rollout **beats a constant-velocity baseline by ~22%** over a 14-step horizon, with the edge *growing* past ~7 steps. Honest scope: those papers are channel/comms-side world models trained on **real** CSI; **our** contribution is showing the *recipe runs through a signal-agnostic state layer* — this is a synthetic-CSI proof of concept, **not** a real-WiFi result. → [`examples/world_model/csi/`](examples/world_model/csi/)
+
+**4 · front + back compose through one standard.** Any encoder in front, any
 dynamics behind, meeting on one serializable state — a pip-installable world-model
 seam you can run in one script. → [`end_to_end.py`](examples/world_model/end_to_end.py)
 

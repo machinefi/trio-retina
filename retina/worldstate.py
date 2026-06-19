@@ -20,7 +20,11 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-SPEC = "retina.worldstate/0.1"
+# 0.2 adds the optional `Entity.locus` (metric world-frame position) — an additive,
+# backward-compatible field per the SPEC.md versioning rule ("registered fields are
+# added in minor versions; consumers MUST ignore unknown fields"). 0.1 states still
+# parse unchanged, and a 0.1 consumer simply ignores `locus`.
+SPEC = "retina.worldstate/0.2"
 
 BBox = tuple[float, float, float, float]
 
@@ -70,11 +74,23 @@ class Vec:
 
 @dataclass(slots=True)
 class Entity:
-    """One thing present in the scene: a symbolic core (+ optional latent `vec`)."""
+    """One thing present in the scene: a symbolic core (+ optional latent `vec`).
+
+    Two distinct, optional position channels coexist:
+
+    * `bbox` — an **image-space** axis-aligned box in *pixels* (the vision path:
+      a detector/tracker output).
+    * `locus` — a **metric position in a world/scene coordinate frame** (the
+      units and frame are defined by the producer, e.g. metres in a room/map
+      frame). This is the typed home for field / non-bbox signals (CSI, radar,
+      lidar, GPS) whose state is a point in space, not a pixel box. An entity may
+      carry either, both, or neither; `locus` is *not* a reprojection of `bbox`.
+    """
 
     id: str  # noqa: A003
     type: str  # noqa: A003
     bbox: BBox | None = None
+    locus: tuple[float, ...] | None = None
     conf: float | None = None
     attrs: dict[str, Any] = field(default_factory=dict)
     vec: Vec | None = None
@@ -83,6 +99,8 @@ class Entity:
         d: dict[str, Any] = {"id": self.id, "type": self.type}
         if self.bbox is not None:
             d["bbox"] = list(self.bbox)
+        if self.locus is not None:
+            d["locus"] = list(self.locus)
         if self.conf is not None:
             d["conf"] = self.conf
         if self.attrs:
@@ -95,6 +113,8 @@ class Entity:
         parts = [f"id={self.id!r}", f"type={self.type!r}"]
         if self.conf is not None:
             parts.append(f"conf={self.conf:.2f}")
+        if self.locus is not None:
+            parts.append("locus")
         if self.vec is not None:
             parts.append("vec")
         return f"Entity({' '.join(parts)})"
@@ -127,7 +147,14 @@ class Relation:
 
 @dataclass(slots=True)
 class WorldState:
-    """The assembled snapshot: entities present, their relations, scene latent."""
+    """The assembled snapshot: entities present, their relations, scene latent.
+
+    `scene` is the home for a **whole-field / scene-level latent** — a model-tagged
+    `Vec` describing the frame as a whole, with no bounding box (e.g. a V-JEPA scene
+    vector, or a CSI channel latent for an RF/field measurement of the whole room).
+    It is the natural slot for any signal whose state is global to the scene rather
+    than anchored to one detected object.
+    """
 
     src: str
     t: float
