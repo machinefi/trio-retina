@@ -72,8 +72,8 @@ def main() -> None:
     trap_world = [(trap_x, y) for y in np.linspace(min(ys) - 20, max(ys) + 25, 40)]
     trap_px = apply_h(Hinv, trap_world).astype(int)
 
-    counted = set()
-    tripped = {ev["id"]: ev["ext"]["kmh"] if "ext" in ev else ev.get("kmh") for ev in S["events"]}
+    # `Event.to_dict()` flattens `ext` to top level, so read kmh straight off.
+    trap_times = sorted(float(ev.get("t", 0.0)) for ev in S["events"])
     i = -1
     last = None
     while True:
@@ -83,6 +83,7 @@ def main() -> None:
         i += 1
         fr = by_frame.get(i, last)
         last = fr if i in by_frame else last
+        cur_t = float(fr["t"]) if fr else i / (fps or 25.0)
 
         # trap line on the road
         for j in range(len(trap_px) - 1):
@@ -90,7 +91,10 @@ def main() -> None:
 
         if fr:
             for e in fr["entities"]:
-                x1, y1, x2, y2 = (int(v) for v in e["bbox"])
+                bbox = e.get("bbox")
+                if not bbox:
+                    continue
+                x1, y1, x2, y2 = (int(v) for v in bbox)
                 v = e.get("speed_kmh")
                 if v is not None and not (0 < v < 160):
                     v = None  # display guard: drop physically implausible readings
@@ -103,11 +107,12 @@ def main() -> None:
                           bg=OXBLOOD if over else GROUND)
 
         # HUD as bottom pills — clear of the camera's own title bar up top.
-        counted.update(str(k) for k in tripped)
+        # Running count: trap measurements whose event time has been reached.
+        measured = sum(1 for tt in trap_times if tt <= cur_t)
         by = H - 22
         w1 = _pill(frame, cv2, "TRIO  SPEED RADAR", (24, by), 0.6, fg=INK, bg=GROUND)
         cv2.circle(frame, (24 + w1 + 6, by - 6), 5, OXBLOOD, -1)
-        cnt = f"measured: {len(counted)}"
+        cnt = f"measured: {measured}"
         (cw, _), _ = cv2.getTextSize(cnt, cv2.FONT_HERSHEY_DUPLEX, 0.6, 1)
         _pill(frame, cv2, cnt, (W - cw - 30, by), 0.6, fg=INK, bg=GROUND)
         vw.write(frame)

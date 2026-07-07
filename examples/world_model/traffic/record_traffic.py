@@ -8,11 +8,14 @@ a from-scratch "speed radar", assembled from Retina primitives.
 
     frame (cv2, BGR)
       -> YOLO vehicle detection            (ultralytics; car/truck/bus/motorcycle)
-      -> sv.Detections -> Detection.from_supervision   (Supervision interop)
-      -> DetectorNode | TrackerNode        (Retina pipeline: stable track ids)
+      -> retina.detect.Detection           (mapped straight off res.boxes)
+      -> IoUTracker.update                 (stable track ids)
       -> WorldState.from_frame             (standardized snapshot)
       -> calib.to_metres(bbox foot)        (-> Entity.locus, metres)
       -> SpeedEstimator                    (d locus / dt -> km/h + trap events)
+
+    (For clips you already have as `sv.Detections`, swap the middle step for
+    `Detection.from_supervision` — Retina's documented Supervision interop.)
 
 Calibration is a small JSON — four image points and the real-world metres they
 correspond to on the road plane (lane widths, dashed-segment lengths, a surveyed

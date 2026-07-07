@@ -69,12 +69,18 @@ class SpeedEstimator:
     _p_hist: dict[str, deque] = field(default_factory=lambda: defaultdict(lambda: deque(maxlen=32)))
     _last_x: dict[str, float] = field(default_factory=dict)
     _tripped: set[str] = field(default_factory=set)
+    _pending: set[str] = field(default_factory=set)
 
-    def kmh(self, eid: str) -> float | None:
-        """Current smoothed speed for an id, or None if not enough samples."""
+    def kmh(self, eid: str, min_samples: int | None = None) -> float | None:
+        """Current smoothed speed for an id, or None if not enough samples.
+
+        `min_samples` overrides the instance default — the trap uses a lower bar
+        (2) so a car that crosses `trap_x` early still gets a reading rather than
+        being dropped."""
         ts = list(self._t_hist[eid])[-self.window :]
         ps = list(self._p_hist[eid])[-self.window :]
-        if len(ts) < self.min_samples:
+        need = self.min_samples if min_samples is None else min_samples
+        if len(ts) < max(2, need):
             return None
         return _finite_diff_speed(ts, ps) * 3.6
 
@@ -96,26 +102,34 @@ class SpeedEstimator:
             if v is not None:
                 ent.attrs["speed_kmh"] = round(v, 1)
 
-            # Virtual speed trap: fire once, when ground X crosses trap_x.
-            if self.trap_x is not None and v is not None and eid not in self._tripped:
+            # Virtual speed trap: fire once, when ground X crosses trap_x. The
+            # crossing is latched in `_pending` so that if the sign-change lands
+            # before enough samples exist for a speed, we still fire on the next
+            # frame instead of losing the measurement.
+            if self.trap_x is not None and eid not in self._tripped:
                 x = float(ent.locus[0])
                 prev = self._last_x.get(eid)
-                if prev is not None and (prev - self.trap_x) * (x - self.trap_x) <= 0:
-                    self._tripped.add(eid)
-                    events.append(
-                        Event(
-                            type="speed",
-                            t=float(t),
-                            src=self.src,
-                            id=_as_int(eid),
-                            label=ent.type,
-                            box=ent.bbox,
-                            ext={"kmh": round(v, 1), "locus_m": [round(c, 2) for c in ent.locus]},
+                crossed = prev is not None and (prev - self.trap_x) * (x - self.trap_x) <= 0
+                if crossed or eid in self._pending:
+                    tv = self.kmh(eid, min_samples=2)
+                    if tv is not None:
+                        self._tripped.add(eid)
+                        self._pending.discard(eid)
+                        events.append(
+                            Event(
+                                type="speed",
+                                t=float(t),
+                                src=self.src,
+                                id=_as_int(eid),
+                                label=ent.type,
+                                box=ent.bbox,
+                                ext={"kmh": round(tv, 1),
+                                     "locus_m": [round(c, 2) for c in ent.locus]},
+                            )
                         )
-                    )
+                    else:
+                        self._pending.add(eid)  # retry next frame once speed exists
                 self._last_x[eid] = x
-            elif self.trap_x is not None and ent.locus is not None:
-                self._last_x[eid] = float(ent.locus[0])
         return events
 
 

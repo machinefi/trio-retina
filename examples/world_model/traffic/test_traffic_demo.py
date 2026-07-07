@@ -79,6 +79,23 @@ def test_speed_events_are_valid_retina_events():
         assert len(ev.ext["locus_m"]) == 2
 
 
+def test_trap_fires_even_when_crossing_before_warmup():
+    # a vehicle that crosses trap_x on its 2nd frame (before min_samples=3) must
+    # still be measured exactly once — the crossing is latched, not dropped.
+    from retina import Entity, WorldState
+
+    est = SpeedEstimator(src="cam", trap_x=10.0, window=6, min_samples=3)
+    fired = []
+    xs = [8.0, 12.0, 16.0, 20.0]  # crosses 10.0 between frame 0 and 1 (2 samples)
+    for i, x in enumerate(xs):
+        t = i * 0.1
+        ws = WorldState(src="cam", t=t,
+                        entities=[Entity(id="7", type="car", bbox=(0, 0, 4, 3), locus=(x, 0.0))])
+        fired.extend(est.update(t, ws))
+    assert len(fired) == 1
+    assert fired[0].ext["kmh"] > 0
+
+
 def test_roi_gate_rejects_out_of_patch_detections():
     # a horizon-divergent detection lands at absurd metres; roi_m must drop it
     from retina import Entity, WorldState
