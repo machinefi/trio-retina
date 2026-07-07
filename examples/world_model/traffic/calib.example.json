@@ -1,0 +1,7 @@
+{
+  "_comment": "Four image points (pixels) and the real-world road-plane metres they map to. Pick points you can measure: lane edges (US lane width 3.66 m / 12 ft), dashed-segment cycle (3.05 m dash + 9.14 m gap = 12.19 m), a surveyed rectangle. X runs along travel, Y across it. trap_x is where the virtual speed trap fires (metres) — a well-conditioned mid-field distance. roi_m (xmin,xmax,ymin,ymax, metres) bounds where speed is trusted: a planar homography diverges near the horizon, so anything outside the calibrated patch is ignored. If omitted, it defaults to the world_pts_m bounding box + a margin.",
+  "image_pts": [[300, 690], [980, 690], [720, 150], [560, 150]],
+  "world_pts_m": [[0.0, -6.0], [0.0, 6.0], [60.0, 6.0], [60.0, -6.0]],
+  "trap_x": 30.0,
+  "roi_m": [-15.0, 75.0, -30.0, 30.0]
+}
