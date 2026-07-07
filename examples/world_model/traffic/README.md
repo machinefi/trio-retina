@@ -1,5 +1,12 @@
 # Traffic speed radar — from a camera, in ~30 lines of state
 
+![Trio speed radar on a live Caltrans freeway camera: each vehicle boxed with its measured km/h, a red speed-trap line across the lanes, over-limit cars flagged in red.](https://raw.githubusercontent.com/machinefi/trio-retina/main/examples/world_model/traffic/media/radar.gif)
+
+*Real, live, unedited: a **Caltrans District 11 public traffic camera** (I-5 NB,
+San Diego — a 640×480 government webcam) run through YOLO → Retina → `Entity.locus`
+→ km/h. Boxes are real detections; the numbers are real speeds (median 82 km/h);
+over-105 km/h cars flag red at the trap line. Source: Caltrans D11 public CCTV.*
+
 A viral clip going around: a student wires up an old camera + a few API calls and
 sells a "speed radar" to a city. The trick isn't a secret model — it's that
 **speed measurement is a calibration problem sitting on top of tracked state.**
