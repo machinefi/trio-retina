@@ -66,9 +66,10 @@ def main() -> None:
     fps = cap.get(cv2.CAP_PROP_FPS) or S.get("fps", 25.0)
     vw = cv2.VideoWriter(args.out, cv2.VideoWriter_fourcc(*"mp4v"), fps, (W, H))
 
-    # Speed trap as a road line: world (trap_x, Y=-8..8 m) -> pixels.
+    # Speed trap as a road line spanning the lanes: world (trap_x, Y across) -> px.
     Hinv = calib.inverse
-    trap_world = [(trap_x, y) for y in np.linspace(-8, 8, 20)]
+    ys = [p[1] for p in c["world_pts_m"]]
+    trap_world = [(trap_x, y) for y in np.linspace(min(ys) - 20, max(ys) + 25, 40)]
     trap_px = apply_h(Hinv, trap_world).astype(int)
 
     counted = set()
@@ -91,6 +92,8 @@ def main() -> None:
             for e in fr["entities"]:
                 x1, y1, x2, y2 = (int(v) for v in e["bbox"])
                 v = e.get("speed_kmh")
+                if v is not None and not (0 < v < 160):
+                    v = None  # display guard: drop physically implausible readings
                 over = args.limit_kmh is not None and v is not None and v > args.limit_kmh
                 col = OXBLOOD if over else (120, 200, 90)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), col, 2)
@@ -99,13 +102,14 @@ def main() -> None:
                           fg=(255, 255, 255) if over else INK,
                           bg=OXBLOOD if over else GROUND)
 
-        # HUD: title + running count of trap measurements
+        # HUD as bottom pills — clear of the camera's own title bar up top.
         counted.update(str(k) for k in tripped)
-        cv2.circle(frame, (24, 30), 5, OXBLOOD, -1)
-        cv2.putText(frame, "TRIO  SPEED RADAR", (38, 36), cv2.FONT_HERSHEY_DUPLEX,
-                    0.7, LIVE, 1, cv2.LINE_AA)
-        cv2.putText(frame, f"measured: {len(counted)}", (W - 220, 36),
-                    cv2.FONT_HERSHEY_DUPLEX, 0.6, LIVE, 1, cv2.LINE_AA)
+        by = H - 22
+        w1 = _pill(frame, cv2, "TRIO  SPEED RADAR", (24, by), 0.6, fg=INK, bg=GROUND)
+        cv2.circle(frame, (24 + w1 + 6, by - 6), 5, OXBLOOD, -1)
+        cnt = f"measured: {len(counted)}"
+        (cw, _), _ = cv2.getTextSize(cnt, cv2.FONT_HERSHEY_DUPLEX, 0.6, 1)
+        _pill(frame, cv2, cnt, (W - cw - 30, by), 0.6, fg=INK, bg=GROUND)
         vw.write(frame)
     cap.release()
     vw.release()

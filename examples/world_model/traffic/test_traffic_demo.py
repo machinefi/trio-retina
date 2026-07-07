@@ -79,6 +79,28 @@ def test_speed_events_are_valid_retina_events():
         assert len(ev.ext["locus_m"]) == 2
 
 
+def test_roi_gate_rejects_out_of_patch_detections():
+    # a horizon-divergent detection lands at absurd metres; roi_m must drop it
+    from retina import Entity, WorldState
+
+    est = SpeedEstimator(src="cam", trap_x=40.0, roi_m=(-15.0, 95.0, -25.0, 45.0))
+    good = 0
+    for i in range(8):
+        t = i * 0.1
+        ents = [
+            Entity(id="1", type="car", bbox=(0, 0, 4, 3), locus=(30 + i * 2.0, 5.0)),
+            Entity(id="9", type="car", bbox=(0, 0, 1, 1), locus=(8228.0, -6637.0)),  # horizon garbage
+        ]
+        est.update(t, WorldState(src="cam", t=t, entities=ents))
+        e_good = next(e for e in ents if e.id == "1")
+        e_bad = next(e for e in ents if e.id == "9")
+        assert "speed_kmh" not in e_bad.attrs  # never measured
+        if "speed_kmh" in e_good.attrs:
+            good += 1
+            assert e_good.attrs["speed_kmh"] < 200  # sane
+    assert good > 0
+
+
 def test_trap_fires_once_per_vehicle():
     states, _gt, _calib = make_states(seconds=4.0)
     est = SpeedEstimator(src="cam", trap_x=30.0)

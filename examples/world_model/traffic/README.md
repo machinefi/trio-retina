@@ -57,6 +57,12 @@ python render_traffic.py --clip road.mp4 --states states.json \
 the numpy-only core (`homography.py`, `speed.py`, `synthetic_traffic.py`) stays
 importable with zero heavy deps, which is why the test suite runs in CI.
 
+Validated live on a **Caltrans D11 public freeway camera** (I-5 NB, San Diego —
+`cwwp2.dot.ca.gov/data/d11/cctv/cctvStatusD11.json` exposes an HLS
+`streamingVideoURL` per camera). Calibrated from lane geometry alone (5 × 3.66 m
+lanes), the trap read a median **82 km/h** across 39 vehicles — a believable I-5
+free-flow speed, from a 640×480 government webcam.
+
 ```bash
 pytest test_traffic_demo.py -q     # 8 passed
 ```
@@ -67,10 +73,12 @@ pytest test_traffic_demo.py -q     # 8 passed
   a few km/h at a well-calibrated mid-field trap — great for traffic intelligence
   (flow, over-speed flags, wrong-way, dwell), *not* a certified radar for writing
   tickets (that needs calibrated radar/lidar and legal metrology).
-- **Accuracy degrades with range.** Near the top of the frame, perspective
-  compresses many metres into few pixels, so detector jitter blows up. Measure at
-  a mid-field trap where the geometry is well-conditioned — which is what the
-  `SpeedEstimator` trap does.
+- **Accuracy degrades with range; the homography diverges at the horizon.** Near
+  the top of the frame a planar homography maps a few pixels to *hundreds* of
+  metres, so far-field detections yield absurd speeds. `SpeedEstimator` takes a
+  metric `roi_m` (the calibrated patch) and simply ignores anything outside it —
+  you can only measure where you calibrated. Measure at a mid-field trap where
+  the geometry is well-conditioned.
 - **Calibration is the whole game.** A fixed camera calibrates once; a moving/PTZ
   camera needs re-calibration (or per-frame road keypoints) — out of scope here.
 

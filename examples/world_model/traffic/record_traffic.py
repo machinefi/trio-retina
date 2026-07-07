@@ -46,11 +46,22 @@ from speed import SpeedEstimator  # noqa: E402
 VEHICLE_CLASSES = {"car", "truck", "bus", "motorcycle"}
 
 
-def load_calibration(path: str) -> tuple[RoadCalibration, float]:
+def load_calibration(path: str):
+    """Returns (calib, trap_x, roi_m). `roi_m` gates speed to the calibrated
+    patch (homography diverges past it); defaults to the world-point bounding
+    box expanded by a margin if not given explicitly."""
     with open(path) as f:
         c = json.load(f)
     calib = RoadCalibration.from_correspondences(c["image_pts"], c["world_pts_m"])
-    return calib, float(c.get("trap_x", 30.0))
+    if "roi_m" in c:
+        roi = tuple(c["roi_m"])
+    else:
+        w = c["world_pts_m"]
+        xs = [p[0] for p in w]
+        ys = [p[1] for p in w]
+        mx, my = 15.0, 25.0  # margin (m): allow lanes beyond the calibration quad
+        roi = (min(xs) - mx, max(xs) + mx, min(ys) - my, max(ys) + my)
+    return calib, float(c.get("trap_x", 30.0)), roi
 
 
 def main() -> None:
@@ -66,11 +77,11 @@ def main() -> None:
     import cv2
     from ultralytics import YOLO
 
-    calib, trap_x = load_calibration(args.calib)
+    calib, trap_x, roi_m = load_calibration(args.calib)
     model = YOLO(args.weights)
     names = model.names
     tracker = IoUTracker(min_hits=2)
-    estimator = SpeedEstimator(src=os.path.basename(args.clip), trap_x=trap_x)
+    estimator = SpeedEstimator(src=os.path.basename(args.clip), trap_x=trap_x, roi_m=roi_m)
 
     cap = cv2.VideoCapture(args.clip)
     fps = cap.get(cv2.CAP_PROP_FPS) or 25.0

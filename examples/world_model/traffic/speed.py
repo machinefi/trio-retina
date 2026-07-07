@@ -59,6 +59,12 @@ class SpeedEstimator:
     trap_x: float | None = None
     window: int = 6
     min_samples: int = 3
+    # Metric region of interest (xmin, xmax, ymin, ymax) in the same units as
+    # locus. A planar homography *diverges near the horizon*: detections above
+    # the calibrated road patch project to absurd metre coordinates (and absurd
+    # speeds). Gating on the calibrated ROI drops exactly those, which is the
+    # honest thing to do — you can only measure where you calibrated.
+    roi_m: tuple[float, float, float, float] | None = None
     _t_hist: dict[str, deque] = field(default_factory=lambda: defaultdict(lambda: deque(maxlen=32)))
     _p_hist: dict[str, deque] = field(default_factory=lambda: defaultdict(lambda: deque(maxlen=32)))
     _last_x: dict[str, float] = field(default_factory=dict)
@@ -78,6 +84,11 @@ class SpeedEstimator:
         for ent in ws.entities:
             if ent.locus is None:
                 continue
+            if self.roi_m is not None:
+                x0, y0 = float(ent.locus[0]), float(ent.locus[1])
+                xmin, xmax, ymin, ymax = self.roi_m
+                if not (xmin <= x0 <= xmax and ymin <= y0 <= ymax):
+                    continue  # outside the calibrated patch — homography unreliable
             eid = ent.id
             self._t_hist[eid].append(float(t))
             self._p_hist[eid].append(tuple(ent.locus))
