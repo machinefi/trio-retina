@@ -1,0 +1,6 @@
+{
+  "_comment": "Four image points (pixels) and the real-world road-plane metres they map to. Pick points you can measure: lane edges (lane width ~3.5 m), dashed-segment ends (~3 m dash + 9 m gap), a surveyed rectangle. X runs along travel, Y across it. trap_x is where the virtual speed trap fires (metres), pick a well-conditioned mid-field distance.",
+  "image_pts": [[300, 690], [980, 690], [720, 150], [560, 150]],
+  "world_pts_m": [[0.0, -6.0], [0.0, 6.0], [60.0, 6.0], [60.0, -6.0]],
+  "trap_x": 30.0
+}
